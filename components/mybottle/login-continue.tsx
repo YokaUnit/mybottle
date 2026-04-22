@@ -41,10 +41,6 @@ export function LoginPrimaryActions() {
       <button
         type="button"
         onClick={handleGoogleSignIn}
-        onTouchEnd={(event) => {
-          event.preventDefault();
-          void handleGoogleSignIn();
-        }}
         disabled={isSubmitting}
         className="flex h-[4.35rem] w-full touch-manipulation items-center justify-center gap-2.5 rounded-[1.2rem] bg-white px-4 text-center text-[clamp(1.2rem,5.2vw,1.45rem)] font-bold text-neutral-900 shadow-md ring-1 ring-black/5 transition active:bg-neutral-100 disabled:opacity-70"
       >

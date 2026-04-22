@@ -68,10 +68,11 @@ export function StoresScreen() {
     <div className="space-y-5">
       <h1 className="mb-screen-title">店舗</h1>
       <input
+        type="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder="店舗名で検索"
-        className="w-full rounded-full border border-[var(--mb-ring)] bg-[var(--mb-card)] px-5 py-3.5 text-[0.9375rem] font-medium text-[var(--mb-ink)] shadow-[var(--mb-shadow-card)] outline-none ring-0 transition placeholder:text-[var(--mb-forest-light)]/70 focus:border-[var(--mb-accent-dark)]/40 focus:ring-2 focus:ring-[var(--mb-accent)]/35"
+        className="w-full rounded-full border border-[var(--mb-ring)] bg-[var(--mb-card)] px-5 py-3.5 text-base font-medium text-[var(--mb-ink)] shadow-[var(--mb-shadow-card)] outline-none ring-0 transition placeholder:text-[var(--mb-forest-light)]/70 focus:border-[var(--mb-accent-dark)]/40 focus:ring-2 focus:ring-[var(--mb-accent)]/35"
       />
 
       <div className="flex gap-1 rounded-full border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-1">
