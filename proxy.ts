@@ -12,7 +12,7 @@ function isPublicPath(pathname: string) {
   return false;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   try {
     const { pathname } = request.nextUrl;
     const session = request.cookies.get(MB_SESSION_COOKIE)?.value;
@@ -35,7 +35,7 @@ export function middleware(request: NextRequest) {
 
     return NextResponse.next();
   } catch {
-    // Never break request flow due to proxy/middleware edge runtime issues.
+    // Never break request flow due to proxy runtime issues.
     return NextResponse.next();
   }
 }
