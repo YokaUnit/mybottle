@@ -4,14 +4,8 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { AnimatedLinearGauge } from "@/components/mybottle/animated-linear-gauge";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
-import { catalog } from "@/lib/mybottle/catalog";
-import { stores } from "@/lib/mybottle/stores";
 import { useStock } from "@/components/mybottle/stock-provider";
-
-function maxUnitsForProduct(productId: string) {
-  const p = catalog.find((c) => c.id === productId);
-  return p?.bundleSize ?? 5;
-}
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 function expiryLabel(updatedAt: string) {
   const d = new Date(updatedAt);
@@ -21,6 +15,7 @@ function expiryLabel(updatedAt: string) {
 
 export function HomeDashboard() {
   const { stock, totalUnits } = useStock();
+  const { products, stores } = useMasterData();
   const bottleCount = stock.length;
 
   const sorted = useMemo(
@@ -62,7 +57,8 @@ export function HomeDashboard() {
           </div>
         ) : (
           sorted.map((item) => {
-            const max = maxUnitsForProduct(item.productId);
+            const product = products.find((c) => c.id === item.productId);
+            const max = product?.bundleSize ?? 5;
             const pct = Math.min(100, Math.round((item.remainingUnits / max) * 100));
             const storeName = stores.find((s) => s.id === item.storeId)?.name ?? "加盟店";
             return (

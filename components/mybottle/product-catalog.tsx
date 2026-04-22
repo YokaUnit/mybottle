@@ -3,12 +3,10 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
-import { catalog } from "@/lib/mybottle/catalog";
-import { storeUiById } from "@/lib/mybottle/store-ui";
 import { useStock } from "@/components/mybottle/stock-provider";
-import { stores } from "@/lib/mybottle/stores";
 import { PaymentMethod } from "@/lib/mybottle/types";
 import { CreditCard, Smartphone } from "lucide-react";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 function formatJpy(value: number) {
   return new Intl.NumberFormat("ja-JP", {
@@ -20,24 +18,31 @@ function formatJpy(value: number) {
 
 export function ProductCatalog() {
   const { purchase } = useStock();
-  const [selectedStoreId, setSelectedStoreId] = useState(stores[0].id);
-  const [selectedProductId, setSelectedProductId] = useState(catalog[0].id);
+  const { stores, products: allProducts, storeUiById } = useMasterData();
+  const [selectedStoreIdState, setSelectedStoreId] = useState("");
+  const [selectedProductIdState, setSelectedProductId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("apple_pay");
   const [message, setMessage] = useState("");
 
-  const products = useMemo(
-    () => [...catalog].sort((a, b) => a.priceJpy - b.priceJpy),
-    [],
-  );
+  const products = useMemo(() => [...allProducts].sort((a, b) => a.priceJpy - b.priceJpy), [allProducts]);
+  const selectedStoreId = selectedStoreIdState || stores[0]?.id || "";
+  const selectedProductId = selectedProductIdState || products[0]?.id || "";
   const selectedProduct = useMemo(
     () => products.find((item) => item.id === selectedProductId) ?? products[0],
     [products, selectedProductId],
   );
   const selectedStore = useMemo(
     () => stores.find((item) => item.id === selectedStoreId) ?? stores[0],
-    [selectedStoreId],
+    [selectedStoreId, stores],
   );
+  if (!selectedStore || !selectedProduct) {
+    return (
+      <section className="mb-surface p-6 text-center text-sm font-medium text-[var(--mb-forest-light)]">
+        商品データを読み込み中です...
+      </section>
+    );
+  }
   const totalPrice = selectedProduct.priceJpy * quantity;
 
   return (
@@ -175,9 +180,9 @@ export function ProductCatalog() {
           <button
             type="button"
             className="mt-4 w-full rounded-full bg-[var(--mb-forest)] px-4 py-4 text-base font-semibold text-white shadow-sm transition active:opacity-90"
-            onClick={() => {
+            onClick={async () => {
               for (let i = 0; i < quantity; i += 1) {
-                purchase({
+                await purchase({
                   storeId: selectedStoreId,
                   productId: selectedProduct.id,
                   paymentMethod,

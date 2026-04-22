@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MobileStepHeader } from "@/components/mybottle/mobile-step-header";
 import { PurchaseProductHero } from "@/components/mybottle/purchase-product-hero";
-import { catalog } from "@/lib/mybottle/catalog";
+import { getMasterData } from "@/lib/supabase/mybottle";
 
 type Props = {
   searchParams: Promise<{ storeId?: string; productId?: string }>;
@@ -9,9 +9,11 @@ type Props = {
 
 export default async function ProductStep3Page({ searchParams }: Props) {
   const params = await searchParams;
+  const { products } = await getMasterData();
   const storeId = params.storeId ?? "chigasaki-a";
-  const productId = params.productId ?? catalog[0].id;
-  const product = catalog.find((item) => item.id === productId) ?? catalog[0];
+  const productId = params.productId ?? products[0]?.id;
+  const product = products.find((item) => item.id === productId) ?? products[0];
+  if (!product) return null;
 
   return (
     <main className="space-y-4">

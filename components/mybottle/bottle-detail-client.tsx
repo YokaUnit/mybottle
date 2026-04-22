@@ -5,18 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatedCircularGauge } from "@/components/mybottle/animated-circular-gauge";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
-import { catalog } from "@/lib/mybottle/catalog";
-import { stores } from "@/lib/mybottle/stores";
 import { useStock } from "@/components/mybottle/stock-provider";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 type Props = {
   storeId: string;
   productId: string;
 };
-
-function maxUnits(productId: string) {
-  return catalog.find((p) => p.id === productId)?.bundleSize ?? 5;
-}
 
 function expiryLabel(updatedAt: string) {
   const d = new Date(updatedAt);
@@ -27,6 +22,7 @@ function expiryLabel(updatedAt: string) {
 export function BottleDetailClient({ storeId, productId }: Props) {
   const router = useRouter();
   const { stock, logs, setRemainingUnits, removeBottle } = useStock();
+  const { products, stores } = useMasterData();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -39,7 +35,7 @@ export function BottleDetailClient({ storeId, productId }: Props) {
     [stock, storeId, productId],
   );
 
-  const max = maxUnits(productId);
+  const max = products.find((p) => p.id === productId)?.bundleSize ?? 5;
   const productLogs = useMemo(
     () => logs.filter((l) => l.productId === productId).slice(0, 8),
     [logs, productId],
@@ -92,9 +88,9 @@ export function BottleDetailClient({ storeId, productId }: Props) {
           <button
             type="button"
             className="rounded-full bg-[var(--mb-forest)] py-3.5 text-sm font-semibold text-white transition active:opacity-90"
-            onClick={() => {
+            onClick={async () => {
               const next = Math.max(1, Math.round(max * 0.6));
-              setRemainingUnits({ storeId, productId, remainingUnits: next });
+              await setRemainingUnits({ storeId, productId, remainingUnits: next });
             }}
           >
             残量を更新
@@ -178,8 +174,8 @@ export function BottleDetailClient({ storeId, productId }: Props) {
               <button
                 type="button"
                 className="rounded-full bg-red-600 py-3 text-sm font-semibold text-white transition hover:bg-red-700 active:opacity-95"
-                onClick={() => {
-                  removeBottle({ storeId, productId });
+                onClick={async () => {
+                  await removeBottle({ storeId, productId });
                   router.push("/");
                 }}
               >

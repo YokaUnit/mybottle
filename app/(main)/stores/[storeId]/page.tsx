@@ -1,11 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { catalog } from "@/lib/mybottle/catalog";
 import { bottleImageCandidates } from "@/lib/mybottle/bottle-images";
 import { Bolt, Clock3, MapPin, Navigation, Sparkles, Wine } from "lucide-react";
-import { stores } from "@/lib/mybottle/stores";
-import { storeUiById } from "@/lib/mybottle/store-ui";
+import { getMasterData } from "@/lib/supabase/mybottle";
 
 type Props = {
   params: Promise<{ storeId: string }>;
@@ -13,11 +11,17 @@ type Props = {
 
 export default async function StoreDetailPage({ params }: Props) {
   const { storeId } = await params;
+  const { stores, products, storeUiById } = await getMasterData();
   const store = stores.find((s) => s.id === storeId);
   if (!store) notFound();
 
-  const meta = storeUiById[store.id] ?? storeUiById["chigasaki-a"];
-  const heroProducts = catalog.slice(0, 3);
+  const meta = storeUiById[store.id] ?? storeUiById[stores[0]?.id ?? ""] ?? {
+    imageSrc: "/store/test1.png",
+    intro: "",
+    features: [],
+    openHours: "-",
+  };
+  const heroProducts = products.slice(0, 3);
 
   return (
     <main className="space-y-5 pb-6 pt-2">

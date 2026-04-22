@@ -5,8 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { LocateFixed, Navigation, Store as StoreIcon } from "lucide-react";
 import { Circle, CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
-import { stores } from "@/lib/mybottle/stores";
-import { storeUiById } from "@/lib/mybottle/store-ui";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 type LatLng = { lat: number; lng: number };
 
@@ -101,6 +100,7 @@ function MapEffects({ userPosition }: { userPosition: LatLng | null }) {
 }
 
 export function StoresMapView() {
+  const { stores, storeUiById } = useMasterData();
   const [userPosition, setUserPosition] = useState<LatLng | null>(null);
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState("");
@@ -113,7 +113,7 @@ export function StoresMapView() {
         distanceKm(userPosition, { lat: b.lat, lng: b.lng }),
     );
     return ranked[0]?.name ?? "";
-  }, [userPosition]);
+  }, [userPosition, stores]);
 
   function handleLocate() {
     if (!navigator.geolocation) {
@@ -133,6 +133,10 @@ export function StoresMapView() {
       },
       { enableHighAccuracy: true, timeout: 10000 },
     );
+  }
+
+  if (stores.length === 0) {
+    return <div className="grid h-full w-full place-items-center text-sm font-medium text-[var(--mb-forest-light)]">店舗データを読み込み中です...</div>;
   }
 
   return (

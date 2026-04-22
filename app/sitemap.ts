@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
-import { stores } from "@/lib/mybottle/stores";
+import { getMasterData } from "@/lib/supabase/mybottle";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://mybottle.app";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { stores } = await getMasterData();
   const staticRoutes = [
     "",
     "/login",

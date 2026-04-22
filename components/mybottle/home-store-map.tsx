@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { stores } from "@/lib/mybottle/stores";
 import { Store } from "@/lib/mybottle/types";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 function distanceKm(fromLat: number, fromLng: number, toLat: number, toLng: number) {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -21,6 +21,7 @@ function distanceKm(fromLat: number, fromLng: number, toLat: number, toLng: numb
 }
 
 export function HomeStoreMap() {
+  const { stores } = useMasterData();
   const [nearest, setNearest] = useState<Store | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [locationError, setLocationError] = useState("");
@@ -28,9 +29,13 @@ export function HomeStoreMap() {
 
   const mapQuery = useMemo(
     () => stores.map((store) => `${store.name} ${store.area}`).join(" OR "),
-    [],
+    [stores],
   );
   const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=14&output=embed`;
+
+  if (stores.length === 0) {
+    return null;
+  }
 
   return (
     <section className="mb-surface p-5">

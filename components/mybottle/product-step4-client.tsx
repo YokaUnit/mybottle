@@ -4,9 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
 import { useStock } from "@/components/mybottle/stock-provider";
-import { PaymentMethod } from "@/lib/mybottle/types";
-import { catalog } from "@/lib/mybottle/catalog";
-import { stores } from "@/lib/mybottle/stores";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 type Props = {
   storeId: string;
@@ -24,26 +22,42 @@ function formatJpy(value: number) {
 
 export function ProductStep4Client({ storeId, productId, quantity }: Props) {
   const { purchase } = useStock();
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("apple_pay");
   const [done, setDone] = useState(false);
+  const { products, stores } = useMasterData();
 
   const product = useMemo(
-    () => catalog.find((item) => item.id === productId) ?? catalog[0],
-    [productId],
+    () => products.find((item) => item.id === productId) ?? products[0],
+    [productId, products],
   );
   const store = useMemo(
     () => stores.find((item) => item.id === storeId) ?? stores[0],
-    [storeId],
+    [storeId, stores],
   );
+  const verifyCode = useMemo(() => {
+    const seed = `${storeId}:${productId}:${quantity}`;
+    let hash = 0;
+    for (let i = 0; i < seed.length; i += 1) {
+      hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+    }
+    return hash.toString(36).toUpperCase().slice(0, 8).padEnd(8, "0");
+  }, [productId, quantity, storeId]);
+
+  if (!product || !store) {
+    return (
+      <section className="mb-surface p-6 text-center text-sm font-medium text-[var(--mb-forest-light)]">
+        商品または店舗情報を読み込めませんでした。
+      </section>
+    );
+  }
 
   const total = product.priceJpy * quantity;
 
   if (done) {
     return (
       <section className="mb-surface border-emerald-200/80 bg-emerald-50/90 p-8 text-center">
-        <p className="text-2xl font-semibold tracking-[-0.03em] text-emerald-800">購入完了</p>
+        <p className="text-2xl font-semibold tracking-[-0.03em] text-emerald-800">登録完了</p>
         <p className="mt-2 text-base font-medium text-[var(--mb-forest-light)]">
-          {store.name} にストック反映しました。
+          店員確認済みとして {store.name} に反映しました。
         </p>
         <Link
           href="/"
@@ -74,41 +88,33 @@ export function ProductStep4Client({ storeId, productId, quantity }: Props) {
           </p>
         </div>
       </div>
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setPaymentMethod("apple_pay")}
-          className={`flex-1 rounded-full px-3 py-3 text-sm font-semibold transition active:opacity-90 ${
-            paymentMethod === "apple_pay"
-              ? "bg-[var(--mb-forest)] text-white"
-              : "border border-[var(--mb-ring)] bg-[var(--mb-muted)] text-[var(--mb-ink)]"
-          }`}
-        >
-          Apple Pay
-        </button>
-        <button
-          type="button"
-          onClick={() => setPaymentMethod("card")}
-          className={`flex-1 rounded-full px-3 py-3 text-sm font-semibold transition active:opacity-90 ${
-            paymentMethod === "card"
-              ? "bg-[var(--mb-forest)] text-white"
-              : "border border-[var(--mb-ring)] bg-[var(--mb-muted)] text-[var(--mb-ink)]"
-          }`}
-        >
-          クレカ
-        </button>
+
+      <div className="rounded-[var(--mb-radius-card)] border border-[var(--mb-ring)] bg-white p-4 text-center">
+        <p className="text-xs font-semibold tracking-[0.12em] text-[var(--mb-forest-light)]">STAFF VERIFY</p>
+        <div
+          className="mx-auto mt-3 h-40 w-40 rounded-lg border border-[var(--mb-ring)] bg-[linear-gradient(90deg,#111_10%,transparent_10%),linear-gradient(#111_10%,transparent_10%)] bg-[size:14px_14px] bg-center"
+          role="img"
+          aria-label="店員提示用QRイメージ"
+        />
+        <p className="mt-3 text-lg font-semibold tracking-[0.16em] text-[var(--mb-ink)]">{verifyCode}</p>
+        <p className="mt-2 text-sm font-medium leading-relaxed text-[var(--mb-forest-light)]">
+          この画面を店員に見せてください
+          <br />
+          店舗確認後に「確認済みとして登録」を押します
+        </p>
       </div>
+
       <button
         type="button"
         className="w-full rounded-full bg-[var(--mb-forest)] px-4 py-4 text-base font-semibold text-white transition active:opacity-90"
-        onClick={() => {
+        onClick={async () => {
           for (let i = 0; i < quantity; i += 1) {
-            purchase({ storeId, productId, paymentMethod });
+            await purchase({ storeId, productId, paymentMethod: "card" });
           }
           setDone(true);
         }}
       >
-        支払い
+        確認済みとして登録
       </button>
     </section>
   );

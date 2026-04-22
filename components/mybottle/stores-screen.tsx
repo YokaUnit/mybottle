@@ -4,9 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChevronRight, Footprints, Heart, MapPin, Sparkles, Star } from "lucide-react";
-import { stores } from "@/lib/mybottle/stores";
-import { storeUiById } from "@/lib/mybottle/store-ui";
 import { Store } from "@/lib/mybottle/types";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 function distanceKm(fromLat: number, fromLng: number, toLat: number, toLng: number) {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -20,6 +19,7 @@ function distanceKm(fromLat: number, fromLng: number, toLat: number, toLng: numb
 }
 
 export function StoresScreen() {
+  const { stores, storeUiById } = useMasterData();
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"visited" | "fav">("visited");
   const [nearest, setNearest] = useState<{ store: Store; km: number } | null>(null);
@@ -31,7 +31,7 @@ export function StoresScreen() {
       `https://maps.google.com/maps?q=${encodeURIComponent(
         stores.map((s) => `${s.name} ${s.area}`).join(" OR "),
       )}&z=14&output=embed`,
-    [],
+    [stores],
   );
 
   const list = useMemo(() => {
@@ -42,7 +42,11 @@ export function StoresScreen() {
         s.name.toLowerCase().includes(qq) ||
         s.area.toLowerCase().includes(qq),
     );
-  }, [q]);
+  }, [q, stores]);
+
+  if (stores.length === 0) {
+    return <div className="text-sm font-medium text-[var(--mb-forest-light)]">店舗データを読み込み中です...</div>;
+  }
 
   return (
     <div className="space-y-5">

@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { stores } from "@/lib/mybottle/stores";
 import { useStock } from "@/components/mybottle/stock-provider";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 function formatJpy(value: number) {
   return new Intl.NumberFormat("ja-JP", {
@@ -14,6 +14,7 @@ function formatJpy(value: number) {
 
 export function StoreDashboard() {
   const { stock, logs, totalSalesJpy } = useStock();
+  const { stores } = useMasterData();
   const [lineCopy, setLineCopy] = useState(
     "雨の日限定: MyBottleで1杯ギフトすると、もう1杯5%OFFクーポン",
   );

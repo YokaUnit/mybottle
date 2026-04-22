@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { History, ListFilter, RefreshCw } from "lucide-react";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
-import { getProductType } from "@/lib/mybottle/catalog";
 import { useStock } from "@/components/mybottle/stock-provider";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 type Tab = "all" | "visit" | "update";
 
 const tabs: { id: Tab; label: string; Icon: typeof ListFilter }[] = [
@@ -15,6 +15,7 @@ const tabs: { id: Tab; label: string; Icon: typeof ListFilter }[] = [
 
 export default function HistoryPage() {
   const { logs } = useStock();
+  const { products } = useMasterData();
   const [tab, setTab] = useState<Tab>("all");
 
   const filtered = useMemo(() => {
@@ -65,7 +66,7 @@ export default function HistoryPage() {
               <BottleProductImage
                 key={`${log.id}-${log.productId}`}
                 productId={log.productId}
-                type={getProductType(log.productId)}
+                type={products.find((p) => p.id === log.productId)?.type ?? "physical"}
                 frameClassName="h-14 w-14 shrink-0"
                 fallbackEmojiClassName="text-xl"
               />

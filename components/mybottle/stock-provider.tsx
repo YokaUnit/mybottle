@@ -1,19 +1,15 @@
 "use client";
 
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
-  createContext,
-  startTransition,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { catalog } from "@/lib/mybottle/catalog";
+  consumeAction,
+  getStockStateAction,
+  purchaseAction,
+  removeBottleAction,
+  setRemainingUnitsAction,
+} from "@/app/(main)/actions/stock-actions";
 import { ActivityLog, PaymentMethod, StockItem } from "@/lib/mybottle/types";
-import { stores } from "@/lib/mybottle/stores";
-
-const STORAGE_KEY = "mybottle.stock.v1";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 type StockContextValue = {
   stock: StockItem[];
@@ -22,20 +18,20 @@ type StockContextValue = {
     storeId: string;
     productId: string;
     paymentMethod: PaymentMethod;
-  }) => void;
-  consume: (params: { storeId: string; productId: string }) => boolean;
-  giftOne: (params: { storeId: string; productId: string; friendName: string }) => boolean;
+  }) => Promise<void>;
+  consume: (params: { storeId: string; productId: string }) => Promise<boolean>;
+  giftOne: (params: { storeId: string; productId: string; friendName: string }) => Promise<boolean>;
   transferOneToAnotherStore: (params: {
     fromStoreId: string;
     toStoreId: string;
     productId: string;
-  }) => boolean;
-  removeBottle: (params: { storeId: string; productId: string }) => void;
+  }) => Promise<boolean>;
+  removeBottle: (params: { storeId: string; productId: string }) => Promise<void>;
   setRemainingUnits: (params: {
     storeId: string;
     productId: string;
     remainingUnits: number;
-  }) => void;
+  }) => Promise<void>;
   getItem: (storeId: string, productId: string) => StockItem | undefined;
   totalUnits: number;
   totalSalesJpy: number;
@@ -43,103 +39,33 @@ type StockContextValue = {
 
 const StockContext = createContext<StockContextValue | null>(null);
 
-type PersistedState = {
+type StockState = {
   stock: StockItem[];
   logs: ActivityLog[];
 };
 
-function createLog(input: Omit<ActivityLog, "id" | "createdAt">): ActivityLog {
-  return {
-    ...input,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-  };
-}
-
-function upsertStockItem(stock: StockItem[], storeId: string, productId: string): StockItem[] {
-  const product = catalog.find((item) => item.id === productId);
-  if (!product) return stock;
-
-  const existing = stock.find(
-    (item) => item.productId === productId && item.storeId === storeId,
-  );
-  const now = new Date().toISOString();
-
-  if (!existing) {
-    return [
-      ...stock,
-      {
-        storeId,
-        productId: product.id,
-        productName: product.name,
-        type: product.type,
-        remainingUnits: product.bundleSize,
-        unitLabel: product.unitLabel,
-        updatedAt: now,
-      },
-    ];
-  }
-
-  return stock.map((item) =>
-    item.productId === productId && item.storeId === storeId
-      ? {
-          ...item,
-          remainingUnits: item.remainingUnits + product.bundleSize,
-          updatedAt: now,
-        }
-      : item,
-  );
-}
-
-function decrementStock(stock: StockItem[], storeId: string, productId: string): StockItem[] {
-  return stock
-    .map((item) =>
-      item.productId === productId && item.storeId === storeId
-        ? {
-            ...item,
-            remainingUnits: Math.max(item.remainingUnits - 1, 0),
-            updatedAt: new Date().toISOString(),
-          }
-        : item,
-    )
-    .filter((item) => item.remainingUnits > 0);
-}
-
-const emptyState: PersistedState = { stock: [], logs: [] };
+const emptyState: StockState = { stock: [], logs: [] };
 
 export function StockProvider({ children }: { children: React.ReactNode }) {
-  /** SSR と初回クライアント描画を一致させる（localStorage はマウント後に読む） */
-  const [state, setState] = useState<PersistedState>(emptyState);
-  const [rehydrated, setRehydrated] = useState(false);
+  const { products } = useMasterData();
+  const [state, setState] = useState<StockState>(emptyState);
 
   const stock = state.stock;
   const logs = state.logs;
 
-  useEffect(() => {
-    startTransition(() => {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw) as PersistedState;
-          setState({
-            stock: Array.isArray(parsed?.stock) ? parsed.stock : [],
-            logs: Array.isArray(parsed?.logs) ? parsed.logs : [],
-          });
-        }
-      } catch {
-        /* 壊れたデータは無視 */
-      }
-      setRehydrated(true);
-    });
+  const refreshState = useCallback(async () => {
+    const next = await getStockStateAction();
+    setState(next);
   }, []);
 
   useEffect(() => {
-    if (!rehydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state, rehydrated]);
+    queueMicrotask(() => {
+      void refreshState();
+    });
+  }, [refreshState]);
 
   const purchase = useCallback(
-    ({
+    async ({
       storeId,
       productId,
       paymentMethod,
@@ -148,69 +74,23 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
       productId: string;
       paymentMethod: PaymentMethod;
     }) => {
-      const product = catalog.find((item) => item.id === productId);
-      if (!product) return;
-
-      setState((prev) => ({
-        stock: upsertStockItem(prev.stock, storeId, productId),
-        logs: [
-          createLog({
-            action: "purchase",
-            storeId,
-            productId,
-            productName: product.name,
-            units: product.bundleSize,
-            unitLabel: product.unitLabel,
-            detail:
-              paymentMethod === "apple_pay"
-                ? "Apple Payで前払い決済"
-                : "クレジットカードで前払い決済",
-          }),
-          ...prev.logs,
-        ].slice(0, 200),
-      }));
+      await purchaseAction({ storeId, productId, paymentMethod });
+      await refreshState();
     },
-    [],
+    [refreshState],
   );
 
-  const consume = useCallback(({ storeId, productId }: { storeId: string; productId: string }) => {
-    let consumed = false;
-    const product = catalog.find((item) => item.id === productId);
-    if (!product) return false;
-
-    setState((prev) => {
-      const target = prev.stock.find(
-        (item) =>
-          item.productId === productId && (item.storeId === storeId || item.type === "virtual"),
-      );
-      if (!target || target.remainingUnits <= 0) return prev;
-      consumed = true;
-
-      return {
-        stock: decrementStock(
-          prev.stock,
-          target.type === "virtual" ? target.storeId : storeId,
-          productId,
-        ),
-        logs: [
-          createLog({
-            action: "consume",
-            storeId,
-            productId,
-            productName: target.productName,
-            units: 1,
-            unitLabel: target.unitLabel,
-            detail: `提示確認で${stores.find((store) => store.id === storeId)?.name ?? "店舗"}にて提供`,
-          }),
-          ...prev.logs,
-        ].slice(0, 200),
-      };
-    });
-    return consumed;
-  }, []);
+  const consume = useCallback(
+    async ({ storeId, productId }: { storeId: string; productId: string }) => {
+      const ok = await consumeAction({ storeId, productId });
+      await refreshState();
+      return ok;
+    },
+    [refreshState],
+  );
 
   const giftOne = useCallback(
-    ({
+    async ({
       storeId,
       productId,
       friendName,
@@ -219,41 +99,35 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
       productId: string;
       friendName: string;
     }) => {
-      let gifted = false;
-      setState((prev) => {
-        const target = prev.stock.find(
-          (item) =>
-            item.productId === productId && (item.storeId === storeId || item.type === "virtual"),
-        );
-        if (!target || target.remainingUnits <= 0) return prev;
-        gifted = true;
-        return {
-          stock: decrementStock(
-            prev.stock,
-            target.type === "virtual" ? target.storeId : storeId,
+      const ok = await consumeAction({ storeId, productId });
+      if (!ok) return false;
+      const product = products.find((item) => item.id === productId);
+      if (!product) return false;
+      setState((prev) => ({
+        ...prev,
+        logs: [
+          {
+            id: crypto.randomUUID(),
+            action: "gift",
+            storeId,
             productId,
-          ),
-          logs: [
-            createLog({
-              action: "gift",
-              storeId,
-              productId,
-              productName: target.productName,
-              units: 1,
-              unitLabel: target.unitLabel,
-              detail: `${friendName} さんへLINEギフト`,
-            }),
-            ...prev.logs,
-          ].slice(0, 200),
-        };
-      });
-      return gifted;
+            productName: product.name,
+            units: 1,
+            unitLabel: product.unitLabel,
+            detail: `${friendName} さんへLINEギフト`,
+            createdAt: new Date().toISOString(),
+          },
+          ...prev.logs,
+        ],
+      }));
+      await refreshState();
+      return true;
     },
-    [],
+    [products, refreshState],
   );
 
   const transferOneToAnotherStore = useCallback(
-    ({
+    async ({
       fromStoreId,
       toStoreId,
       productId,
@@ -263,37 +137,13 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
       productId: string;
     }) => {
       if (fromStoreId === toStoreId) return false;
-      let transferred = false;
-      setState((prev) => {
-        const target = prev.stock.find(
-          (item) => item.storeId === fromStoreId && item.productId === productId,
-        );
-        if (!target || target.remainingUnits <= 0 || target.type !== "virtual") return prev;
-        transferred = true;
-
-        return {
-          stock: upsertStockItem(
-            decrementStock(prev.stock, fromStoreId, productId),
-            toStoreId,
-            productId,
-          ),
-          logs: [
-            createLog({
-              action: "transfer",
-              storeId: toStoreId,
-              productId,
-              productName: target.productName,
-              units: 1,
-              unitLabel: target.unitLabel,
-              detail: `${stores.find((s) => s.id === fromStoreId)?.name ?? "A店"}から移動`,
-            }),
-            ...prev.logs,
-          ].slice(0, 200),
-        };
-      });
-      return transferred;
+      const consumed = await consumeAction({ storeId: fromStoreId, productId });
+      if (!consumed) return false;
+      await purchaseAction({ storeId: toStoreId, productId, paymentMethod: "card" });
+      await refreshState();
+      return true;
     },
-    [],
+    [refreshState],
   );
 
   const getItem = useCallback(
@@ -302,34 +152,16 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
     [stock],
   );
 
-  const removeBottle = useCallback(({ storeId, productId }: { storeId: string; productId: string }) => {
-    setState((prev) => {
-      const target = prev.stock.find(
-        (item) => item.storeId === storeId && item.productId === productId,
-      );
-      if (!target) return prev;
-      return {
-        stock: prev.stock.filter(
-          (item) => !(item.storeId === storeId && item.productId === productId),
-        ),
-        logs: [
-          createLog({
-            action: "remove",
-            storeId,
-            productId,
-            productName: target.productName,
-            units: target.remainingUnits,
-            unitLabel: target.unitLabel,
-            detail: "ボトルを削除しました",
-          }),
-          ...prev.logs,
-        ].slice(0, 200),
-      };
-    });
-  }, []);
+  const removeBottle = useCallback(
+    async ({ storeId, productId }: { storeId: string; productId: string }) => {
+      await removeBottleAction({ storeId, productId });
+      await refreshState();
+    },
+    [refreshState],
+  );
 
   const setRemainingUnits = useCallback(
-    ({
+    async ({
       storeId,
       productId,
       remainingUnits,
@@ -338,44 +170,10 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
       productId: string;
       remainingUnits: number;
     }) => {
-      setState((prev) => {
-        const target = prev.stock.find(
-          (item) => item.storeId === storeId && item.productId === productId,
-        );
-        if (!target) return prev;
-        const nextUnits = Math.max(0, Math.round(remainingUnits));
-        const nextStock =
-          nextUnits === 0
-            ? prev.stock.filter(
-                (item) => !(item.storeId === storeId && item.productId === productId),
-              )
-            : prev.stock.map((item) =>
-                item.storeId === storeId && item.productId === productId
-                  ? {
-                      ...item,
-                      remainingUnits: nextUnits,
-                      updatedAt: new Date().toISOString(),
-                    }
-                  : item,
-              );
-        return {
-          stock: nextStock,
-          logs: [
-            createLog({
-              action: "update",
-              storeId,
-              productId,
-              productName: target.productName,
-              units: nextUnits,
-              unitLabel: target.unitLabel,
-              detail: `残量を${nextUnits}${target.unitLabel}に更新`,
-            }),
-            ...prev.logs,
-          ].slice(0, 200),
-        };
-      });
+      await setRemainingUnitsAction({ storeId, productId, remainingUnits });
+      await refreshState();
     },
-    [],
+    [refreshState],
   );
 
   const totalUnits = useMemo(
@@ -387,10 +185,10 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
       logs
         .filter((log) => log.action === "purchase")
         .reduce((sum, log) => {
-          const product = catalog.find((item) => item.id === log.productId);
+          const product = products.find((item) => item.id === log.productId);
           return sum + (product?.priceJpy ?? 0);
         }, 0),
-    [logs],
+    [logs, products],
   );
 
   const value = useMemo(

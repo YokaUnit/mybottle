@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
 import { useStock } from "@/components/mybottle/stock-provider";
-import { stores } from "@/lib/mybottle/stores";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 function createToken() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -13,7 +13,8 @@ function createToken() {
 export function ConsumeConsole() {
   const searchParams = useSearchParams();
   const initialProductId = searchParams.get("productId") ?? "";
-  const initialStoreId = searchParams.get("storeId") ?? stores[0].id;
+  const { stores } = useMasterData();
+  const initialStoreId = searchParams.get("storeId") ?? stores[0]?.id ?? "";
   const { stock, consume } = useStock();
 
   const [selectedProductId, setSelectedProductId] = useState(initialProductId);
@@ -46,7 +47,7 @@ export function ConsumeConsole() {
     return () => window.clearInterval(timer);
   }, [expiresAt]);
 
-  if (stock.length === 0) {
+  if (stock.length === 0 || stores.length === 0) {
     return (
       <section className="rounded-2xl border border-dashed border-zinc-300 p-6 text-sm text-zinc-600">
         消費する在庫がありません。購入画面で先にまとめ買いしてください。
@@ -156,8 +157,8 @@ export function ConsumeConsole() {
           <button
             type="button"
             className="mt-5 rounded-full bg-white px-4 py-2 text-sm font-semibold text-zinc-900"
-            onClick={() => {
-              const ok = consume({
+            onClick={async () => {
+              const ok = await consume({
                 storeId: selectedStoreId,
                 productId: selectedItem.productId,
               });

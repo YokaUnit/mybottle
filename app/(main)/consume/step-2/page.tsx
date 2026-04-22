@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { catalog } from "@/lib/mybottle/catalog";
 import { MobileStepHeader } from "@/components/mybottle/mobile-step-header";
-import { stores } from "@/lib/mybottle/stores";
+import { getMasterData } from "@/lib/supabase/mybottle";
 
 type Props = {
   searchParams: Promise<{ storeId?: string; productId?: string }>;
@@ -9,10 +8,12 @@ type Props = {
 
 export default async function ConsumeStep2Page({ searchParams }: Props) {
   const params = await searchParams;
-  const storeId = params.storeId ?? stores[0].id;
-  const productId = params.productId ?? catalog[0].id;
+  const { stores, products } = await getMasterData();
+  const storeId = params.storeId ?? stores[0]?.id ?? "";
+  const productId = params.productId ?? products[0]?.id ?? "";
   const store = stores.find((s) => s.id === storeId) ?? stores[0];
-  const product = catalog.find((p) => p.id === productId) ?? catalog[0];
+  const product = products.find((p) => p.id === productId) ?? products[0];
+  if (!store || !product) return null;
 
   return (
     <main className="space-y-4">

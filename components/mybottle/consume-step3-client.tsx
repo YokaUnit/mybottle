@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
-import { catalog } from "@/lib/mybottle/catalog";
-import { stores } from "@/lib/mybottle/stores";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 type Props = {
   storeId: string;
@@ -16,25 +15,34 @@ function createToken() {
 }
 
 export function ConsumeStep3Client({ storeId, productId }: Props) {
+  const { stores, products } = useMasterData();
   const [token, setToken] = useState("");
   const [remain, setRemain] = useState(0);
 
-  const store = useMemo(() => stores.find((s) => s.id === storeId) ?? stores[0], [storeId]);
-  const product = useMemo(() => catalog.find((p) => p.id === productId) ?? catalog[0], [productId]);
+  const store = useMemo(() => stores.find((s) => s.id === storeId) ?? stores[0], [storeId, stores]);
+  const product = useMemo(() => products.find((p) => p.id === productId) ?? products[0], [productId, products]);
 
   useEffect(() => {
     if (!token || remain <= 0) return;
     const id = window.setInterval(() => {
-      setRemain((prev) => Math.max(prev - 1, 0));
+      setRemain((prev) => {
+        const next = Math.max(prev - 1, 0);
+        if (next === 0) {
+          setToken("");
+        }
+        return next;
+      });
     }, 1000);
     return () => window.clearInterval(id);
   }, [token, remain]);
 
-  useEffect(() => {
-    if (remain === 0 && token) {
-      setToken("");
-    }
-  }, [remain, token]);
+  if (!store || !product) {
+    return (
+      <section className="mb-surface p-6 text-center text-sm font-medium text-[var(--mb-forest-light)]">
+        データを読み込み中です...
+      </section>
+    );
+  }
 
   return (
     <section className="mb-surface space-y-4 p-5">

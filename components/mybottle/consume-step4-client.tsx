@@ -77,8 +77,8 @@ export function ConsumeStep4Client({ storeId, productId }: Props) {
       <button
         type="button"
         className="w-full rounded-full bg-[var(--mb-forest)] px-4 py-4 text-base font-semibold text-white transition active:opacity-90"
-        onClick={() => {
-          const ok = consume({ storeId, productId });
+        onClick={async () => {
+          const ok = await consume({ storeId, productId });
           if (ok) setDone(true);
         }}
       >

@@ -1,15 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MobileStepHeader } from "@/components/mybottle/mobile-step-header";
-import { stores } from "@/lib/mybottle/stores";
-import { storeUiById } from "@/lib/mybottle/store-ui";
+import { getMasterData } from "@/lib/supabase/mybottle";
 
-export default function ProductStep1Page() {
+export default async function ProductStep1Page() {
+  const { stores, storeUiById } = await getMasterData();
   return (
     <main className="space-y-4">
-      <MobileStepHeader title="購入方法" step={1} />
+      <MobileStepHeader title="店舗を選択" step={1} />
       <section className="mb-surface space-y-3 p-5">
-        <p className="text-sm font-medium text-[var(--mb-forest-light)]">【オンラインショップ】を選択</p>
+        <p className="text-sm font-medium text-[var(--mb-forest-light)]">店頭で購入確認する店舗を選んでください</p>
         {stores.map((store) => (
           <Link
             key={store.id}

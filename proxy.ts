@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-const MB_SESSION_COOKIE = "mb_session";
+import { createServerClient } from "@supabase/ssr";
 
 function isPublicPath(pathname: string) {
   if (pathname === "/login") return true;
+  if (pathname.startsWith("/auth/callback")) return true;
   if (pathname.startsWith("/_next")) return true;
   if (pathname.startsWith("/images/")) return true;
   if (pathname === "/favicon.ico") return true;
@@ -12,28 +12,49 @@ function isPublicPath(pathname: string) {
   return false;
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   try {
     const { pathname } = request.nextUrl;
-    const session = request.cookies.get(MB_SESSION_COOKIE)?.value;
+    const response = NextResponse.next({ request });
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (pathname === "/login" && session) {
+    let hasAuthSession = false;
+    if (supabaseUrl && supabaseAnonKey) {
+      const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+          },
+        },
+      });
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      hasAuthSession = Boolean(user);
+    }
+
+    if (pathname === "/login" && hasAuthSession) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
       return NextResponse.redirect(url);
     }
 
     if (isPublicPath(pathname)) {
-      return NextResponse.next();
+      return response;
     }
 
-    if (!session) {
+    if (!hasAuthSession) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       return NextResponse.redirect(url);
     }
 
-    return NextResponse.next();
+    return response;
   } catch {
     // Never break request flow due to proxy runtime issues.
     return NextResponse.next();
