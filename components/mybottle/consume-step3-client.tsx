@@ -1,0 +1,84 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
+import { catalog } from "@/lib/mybottle/catalog";
+import { stores } from "@/lib/mybottle/stores";
+
+type Props = {
+  storeId: string;
+  productId: string;
+};
+
+function createToken() {
+  return Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+export function ConsumeStep3Client({ storeId, productId }: Props) {
+  const [token, setToken] = useState("");
+  const [remain, setRemain] = useState(0);
+
+  const store = useMemo(() => stores.find((s) => s.id === storeId) ?? stores[0], [storeId]);
+  const product = useMemo(() => catalog.find((p) => p.id === productId) ?? catalog[0], [productId]);
+
+  useEffect(() => {
+    if (!token || remain <= 0) return;
+    const id = window.setInterval(() => {
+      setRemain((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [token, remain]);
+
+  useEffect(() => {
+    if (remain === 0 && token) {
+      setToken("");
+    }
+  }, [remain, token]);
+
+  return (
+    <section className="mb-surface space-y-4 p-5">
+      <div className="flex items-center gap-3 rounded-[0.85rem] border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-3">
+        <BottleProductImage
+          productId={product.id}
+          type={product.type}
+          frameClassName="h-16 w-16 shrink-0"
+          fallbackEmojiClassName="text-2xl"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold tracking-[-0.02em] text-[var(--mb-ink)]">{product.name}</p>
+          <p className="text-xs font-medium text-[var(--mb-forest-light)]">{store.name}</p>
+        </div>
+      </div>
+
+      {!token ? (
+        <button
+          type="button"
+          className="w-full rounded-full bg-[var(--mb-forest)] px-4 py-4 text-base font-semibold text-white transition active:opacity-90"
+          onClick={() => {
+            setToken(createToken());
+            setRemain(20);
+          }}
+        >
+          店員に提示するコードを表示
+        </button>
+      ) : (
+        <div className="rounded-[var(--mb-radius-card)] border border-[var(--mb-forest)]/20 bg-[var(--mb-forest)] p-6 text-white shadow-[var(--mb-shadow-card)]">
+          <p className="text-[0.65rem] font-medium tracking-[0.18em] text-white/80">MYBOTTLE VERIFY</p>
+          <p className="mt-3 text-4xl font-semibold tabular-nums tracking-[0.12em]">{token}</p>
+          <p className="mt-3 text-sm font-medium text-white/90">有効期限: あと {remain} 秒</p>
+          <p className="mt-1 text-xs font-medium text-white/70">店員確認が済んだら次へ進んでください</p>
+        </div>
+      )}
+
+      <Link
+        href={token ? `/consume/step-4?storeId=${storeId}&productId=${productId}` : "#"}
+        className={`block rounded-full px-4 py-4 text-center text-base font-semibold transition active:opacity-90 ${
+          token ? "bg-[var(--mb-forest)] text-white" : "bg-[var(--mb-muted-strong)] text-[var(--mb-forest-light)]"
+        }`}
+      >
+        確認後、使用を確定へ
+      </Link>
+    </section>
+  );
+}
