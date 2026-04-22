@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import type { CSSProperties } from "react";
 
 type Props = {
   value: number;
@@ -8,19 +8,8 @@ type Props = {
 };
 
 export function AnimatedLinearGauge({ value, className }: Props) {
-  const reducedMotion = useReducedMotion();
   const clamped = Math.max(0, Math.min(100, value));
+  const style = { "--mb-gauge-target": `${clamped}%` } as CSSProperties;
 
-  return (
-    <motion.div
-      className={className}
-      initial={{ width: "0%" }}
-      animate={{ width: `${clamped}%` }}
-      transition={
-        reducedMotion
-          ? { duration: 0 }
-          : { duration: 0.85, ease: [0.2, 0.9, 0.2, 1] }
-      }
-    />
-  );
+  return <div className={`mb-gauge-fill ${className ?? ""}`} style={style} />;
 }

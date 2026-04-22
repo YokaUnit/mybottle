@@ -30,15 +30,12 @@ export function HomeDashboard() {
 
   return (
     <div className="space-y-6 pb-4 pt-1">
-      <div className="mb-enter-up">
+      <div>
         <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--mb-ink)]">こんにちは、ゲストさん</p>
         <p className="mt-1 text-[0.8125rem] font-medium text-[var(--mb-forest-light)]">マイボトル</p>
       </div>
 
-      <section
-        className="mb-enter-up mb-surface px-5 py-5"
-        style={{ animationDelay: "40ms" }}
-      >
+      <section className="mb-surface px-5 py-5">
         <p className="mb-label-caps">登録ボトル</p>
         <div className="mt-3 flex items-end gap-2">
           <p className="text-[2.25rem] font-semibold leading-none tracking-[-0.04em] text-[var(--mb-forest)]">
@@ -54,17 +51,17 @@ export function HomeDashboard() {
 
       <div className="space-y-3">
         {sorted.length === 0 ? (
-          <div className="mb-enter-up mb-surface px-5 py-10 text-center">
+          <div className="mb-surface px-5 py-10 text-center">
             <p className="text-sm font-medium text-[var(--mb-forest-light)]">まだボトルがありません。</p>
             <Link
               href="/add-bottle"
-              className="mt-4 inline-flex rounded-full bg-[var(--mb-accent)]/35 px-5 py-2.5 text-sm font-semibold text-[var(--mb-forest)] ring-1 ring-[var(--mb-accent-dark)]/25 transition active:opacity-80"
+              className="mt-4 inline-flex rounded-full bg-[var(--mb-accent)]/35 px-5 py-2.5 text-sm font-semibold text-[var(--mb-forest)] ring-1 ring-[var(--mb-accent-dark)]/25 active:opacity-80"
             >
               QRで追加する
             </Link>
           </div>
         ) : (
-          sorted.map((item, index) => {
+          sorted.map((item) => {
             const max = maxUnitsForProduct(item.productId);
             const pct = Math.min(100, Math.round((item.remainingUnits / max) * 100));
             const storeName = stores.find((s) => s.id === item.storeId)?.name ?? "加盟店";
@@ -72,8 +69,7 @@ export function HomeDashboard() {
               <Link
                 key={`${item.storeId}-${item.productId}`}
                 href={`/bottle/${item.storeId}/${item.productId}`}
-                className="mb-card-enter mb-surface block p-4 transition active:opacity-80"
-                style={{ animationDelay: `${90 + index * 70}ms` }}
+                className="mb-surface block p-4 active:opacity-80"
               >
                 <div className="flex gap-4">
                   <BottleProductImage
@@ -107,16 +103,16 @@ export function HomeDashboard() {
         )}
       </div>
 
-      <div className="mb-enter-up grid gap-3 sm:grid-cols-2" style={{ animationDelay: "120ms" }}>
+      <div className="grid gap-3 sm:grid-cols-2">
         <Link
           href="/add-bottle"
-          className="flex items-center justify-center rounded-full bg-[var(--mb-forest)] px-5 py-3.5 text-center text-[0.9375rem] font-semibold text-white shadow-sm transition active:opacity-90"
+          className="flex items-center justify-center rounded-full bg-[var(--mb-forest)] px-5 py-3.5 text-center text-[0.9375rem] font-semibold text-white shadow-sm active:opacity-90"
         >
           ボトルを追加
         </Link>
         <Link
           href="/products/step-1"
-          className="flex items-center justify-center rounded-full border border-[var(--mb-forest)]/25 bg-[var(--mb-card)] px-5 py-3.5 text-center text-[0.9375rem] font-semibold text-[var(--mb-forest)] ring-1 ring-[var(--mb-ring)] transition active:opacity-90"
+          className="flex items-center justify-center rounded-full border border-[var(--mb-forest)]/25 bg-[var(--mb-card)] px-5 py-3.5 text-center text-[0.9375rem] font-semibold text-[var(--mb-forest)] ring-1 ring-[var(--mb-ring)] active:opacity-90"
         >
           購入する
         </Link>

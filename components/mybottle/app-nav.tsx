@@ -28,12 +28,12 @@ export function AppNav() {
             <Link
               key={link.href}
               href={link.href}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium tracking-tight transition active:opacity-70 ${
+              className={`flex flex-1 flex-col items-center gap-0.5 py-1.5 text-[10px] font-medium tracking-tight active:opacity-70 ${
                 active ? "text-[var(--mb-forest)]" : "text-[var(--mb-forest-light)]/75 hover:text-[var(--mb-ink)]"
               }`}
             >
               <span
-                className={`grid h-9 w-9 place-items-center rounded-full transition ${
+                className={`grid h-9 w-9 place-items-center rounded-full ${
                   active ? "bg-[var(--mb-accent)]/28 text-[var(--mb-forest)]" : "text-[var(--mb-forest-light)]"
                 }`}
               >

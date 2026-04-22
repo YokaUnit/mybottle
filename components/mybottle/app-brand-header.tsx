@@ -32,7 +32,7 @@ export function AppBrandHeader() {
         </Link>
         <Link
           href="/benefits"
-          className="grid h-10 w-10 place-items-center rounded-full bg-[var(--mb-muted)] text-[var(--mb-forest)] ring-1 ring-[var(--mb-ring)] transition active:scale-[0.96] hover:bg-[var(--mb-muted-strong)]"
+          className="grid h-10 w-10 place-items-center rounded-full bg-[var(--mb-muted)] text-[var(--mb-forest)] ring-1 ring-[var(--mb-ring)] active:scale-[0.96] hover:bg-[var(--mb-muted-strong)]"
           aria-label="お知らせ"
         >
           <Bell className="h-[1.15rem] w-[1.15rem]" strokeWidth={1.75} aria-hidden />
