@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatedLinearGauge } from "@/components/mybottle/animated-linear-gauge";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
 import { useStock } from "@/components/mybottle/stock-provider";
 import { useMasterData } from "@/components/mybottle/master-data-provider";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function expiryLabel(updatedAt: string) {
   const d = new Date(updatedAt);
@@ -16,6 +17,7 @@ function expiryLabel(updatedAt: string) {
 export function HomeDashboard() {
   const { stock, totalUnits } = useStock();
   const { products, stores } = useMasterData();
+  const [displayName, setDisplayName] = useState("ゲスト");
   const bottleCount = stock.length;
 
   const sorted = useMemo(
@@ -23,10 +25,41 @@ export function HomeDashboard() {
     [stock],
   );
 
+  useEffect(() => {
+    let active = true;
+    async function loadDisplayName() {
+      const supabase = createSupabaseBrowserClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || !active) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!active) return;
+      const name =
+        profile?.display_name ??
+        user.user_metadata?.name ??
+        user.user_metadata?.full_name ??
+        user.email?.split("@")[0] ??
+        "ユーザー";
+      setDisplayName(name);
+    }
+
+    loadDisplayName();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <div className="space-y-6 pb-4 pt-1">
       <div>
-        <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--mb-ink)]">こんにちは、ゲストさん</p>
+        <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--mb-ink)]">こんにちは、{displayName}さん</p>
         <p className="mt-1 text-[0.8125rem] font-medium text-[var(--mb-forest-light)]">マイボトル</p>
       </div>
 

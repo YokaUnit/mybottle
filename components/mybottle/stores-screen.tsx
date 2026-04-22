@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Footprints, Heart, MapPin, Sparkles, Star } from "lucide-react";
 import { Store } from "@/lib/mybottle/types";
 import { useMasterData } from "@/components/mybottle/master-data-provider";
@@ -19,12 +19,28 @@ function distanceKm(fromLat: number, fromLng: number, toLat: number, toLng: numb
 }
 
 export function StoresScreen() {
+  const MAP_VISIBILITY_KEY = "mb_stores_map_visible";
   const { stores, storeUiById } = useMasterData();
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<"visited" | "fav">("visited");
   const [nearest, setNearest] = useState<{ store: Store; km: number } | null>(null);
   const [locErr, setLocErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showMap, setShowMap] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.sessionStorage.getItem(MAP_VISIBILITY_KEY) === "1";
+  });
+
+  useEffect(() => {
+    const persisted = window.sessionStorage.getItem(MAP_VISIBILITY_KEY);
+    if (persisted === "1") {
+      setShowMap(true);
+      return;
+    }
+    // 初回も自動表示し、以後は同一タブ内で表示状態を維持する。
+    setShowMap(true);
+    window.sessionStorage.setItem(MAP_VISIBILITY_KEY, "1");
+  }, []);
 
   const mapUrl = useMemo(
     () =>
@@ -86,7 +102,13 @@ export function StoresScreen() {
       </div>
 
       <div className="overflow-hidden rounded-[var(--mb-radius-card)] border border-[var(--mb-ring)] bg-[var(--mb-card)] shadow-[var(--mb-shadow-card)]">
-        <iframe title="地図" src={mapUrl} className="h-48 w-full" loading="lazy" />
+        {showMap ? (
+          <iframe title="地図" src={mapUrl} className="h-48 w-full" loading="lazy" />
+        ) : (
+          <div className="flex h-48 w-full items-center justify-center bg-[var(--mb-muted)] px-4 text-center text-sm font-medium text-[var(--mb-forest-light)]">
+            地図を読み込み中...
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3">

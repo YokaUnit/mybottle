@@ -14,7 +14,9 @@ export async function GET(request: Request) {
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(new URL("/login", url.origin));
+    const loginUrl = new URL("/login", url.origin);
+    loginUrl.searchParams.set("auth_error", error.code ?? "exchange_failed");
+    return NextResponse.redirect(loginUrl);
   }
 
   const {

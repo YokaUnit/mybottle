@@ -12,7 +12,7 @@ export default async function MyPage() {
   const { data: profile } = userId
     ? await supabase
         .from("profiles")
-        .select("display_name, email, phone, avatar_url")
+        .select("display_name, email, phone, avatar_url, role")
         .eq("id", userId)
         .maybeSingle()
     : { data: null };
@@ -20,6 +20,9 @@ export default async function MyPage() {
   const displayName = profile?.display_name ?? user?.user_metadata?.name ?? "未設定";
   const email = profile?.email ?? user?.email ?? "メール未設定";
   const phone = profile?.phone ?? user?.phone ?? "";
+  const role = profile?.role === "admin" || profile?.role === "staff" ? profile.role : "user";
+  const canUseDashboard = role === "staff" || role === "admin";
+  const isAdmin = role === "admin";
 
   return (
     <main className="space-y-5 pb-4 pt-2">
@@ -42,15 +45,16 @@ export default async function MyPage() {
           <p className="text-lg font-semibold tracking-[-0.02em] text-[var(--mb-ink)]">{displayName}</p>
           <p className="text-sm font-medium text-[var(--mb-forest-light)]">{email}</p>
           {phone ? <p className="text-xs font-medium text-[var(--mb-forest-light)]">{phone}</p> : null}
+          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--mb-accent-dark)]">{role}</p>
         </div>
       </section>
 
       <nav className="mb-surface overflow-hidden">
         {[
           { href: user ? "/mypage/edit" : "/login", label: "プロフィール編集" },
-          { href: "#", label: "通知設定" },
-          { href: "#", label: "パスコード設定" },
-          { href: "#", label: "ヘルプ・お問い合わせ" },
+          { href: "/mypage/help", label: "お問い合わせ" },
+          { href: "/mypage/terms", label: "利用規約" },
+          { href: "/mypage/privacy", label: "プライバシーポリシー" },
         ].map((row) => (
           <Link
             key={row.label}
@@ -64,12 +68,16 @@ export default async function MyPage() {
         <LogoutButton />
       </nav>
 
-      <Link
-        href="/dashboard"
-        className="block text-center text-xs font-medium text-[var(--mb-forest-light)]"
-      >
-        店舗向けダッシュボード（運営）
-      </Link>
+      {canUseDashboard ? (
+        <Link href="/dashboard" className="block text-center text-xs font-medium text-[var(--mb-forest-light)]">
+          店舗向けダッシュボード（運営）
+        </Link>
+      ) : null}
+      {isAdmin ? (
+        <Link href="/admin" className="block text-center text-xs font-semibold text-[var(--mb-accent-dark)]">
+          管理者ページへ
+        </Link>
+      ) : null}
     </main>
   );
 }

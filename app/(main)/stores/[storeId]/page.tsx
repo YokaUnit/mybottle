@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { bottleImageCandidates } from "@/lib/mybottle/bottle-images";
 import { Bolt, Clock3, MapPin, Navigation, Sparkles, Wine } from "lucide-react";
-import { getMasterData } from "@/lib/supabase/mybottle";
+import { getStoreDetailById } from "@/lib/supabase/mybottle";
 
 type Props = {
   params: Promise<{ storeId: string }>;
@@ -11,24 +11,22 @@ type Props = {
 
 export default async function StoreDetailPage({ params }: Props) {
   const { storeId } = await params;
-  const { stores, products, storeUiById } = await getMasterData();
-  const store = stores.find((s) => s.id === storeId);
+  const { store, meta, heroProducts } = await getStoreDetailById(storeId);
   if (!store) notFound();
 
-  const meta = storeUiById[store.id] ?? storeUiById[stores[0]?.id ?? ""] ?? {
+  const safeMeta = meta ?? {
     imageSrc: "/store/test1.png",
     intro: "",
     features: [],
     openHours: "-",
   };
-  const heroProducts = products.slice(0, 3);
 
   return (
     <main className="space-y-5 pb-6 pt-2">
       <section className="mb-surface overflow-hidden">
         <div className="relative h-48 w-full bg-[var(--mb-muted)]">
           <Image
-            src={meta.imageSrc}
+            src={safeMeta.imageSrc}
             alt={`${store.name} 店舗イメージ`}
             fill
             unoptimized
@@ -45,13 +43,13 @@ export default async function StoreDetailPage({ params }: Props) {
         </div>
 
         <div className="space-y-4 p-5">
-          <p className="text-sm font-medium leading-relaxed text-[var(--mb-forest-light)]">{meta.intro}</p>
+          <p className="text-sm font-medium leading-relaxed text-[var(--mb-forest-light)]">{safeMeta.intro}</p>
 
           <div className="rounded-[0.85rem] border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-4">
             <div className="flex items-center gap-2 text-sm text-[var(--mb-ink)]">
               <Clock3 className="h-4 w-4 text-[var(--mb-forest-light)]" aria-hidden />
               <span className="font-medium">営業時間</span>
-              <span className="ml-auto text-[var(--mb-forest-light)]">{meta.openHours}</span>
+              <span className="ml-auto text-[var(--mb-forest-light)]">{safeMeta.openHours}</span>
             </div>
             <div className="mt-3 flex items-center gap-2 text-sm text-[var(--mb-ink)]">
               <MapPin className="h-4 w-4 text-[var(--mb-forest-light)]" aria-hidden />
@@ -63,7 +61,7 @@ export default async function StoreDetailPage({ params }: Props) {
           <div className="rounded-[0.85rem] border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-4">
             <p className="mb-label-caps">店舗の特徴</p>
             <ul className="mt-3 space-y-2">
-              {meta.features.map((f) => (
+              {safeMeta.features.map((f) => (
                 <li key={f} className="flex items-center gap-2 text-sm font-medium text-[var(--mb-ink)]">
                   <Sparkles className="h-3.5 w-3.5 shrink-0 text-[var(--mb-accent-dark)]" aria-hidden />
                   {f}

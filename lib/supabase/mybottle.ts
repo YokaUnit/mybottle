@@ -15,6 +15,54 @@ export type MasterData = {
   storeUiById: Record<string, StoreUiMeta>;
 };
 
+export type BenefitNewsItem = {
+  id: string;
+  badgeLabel: string;
+  title: string;
+  body: string;
+  sortOrder: number;
+};
+
+type BenefitNewsRow = {
+  id: string;
+  badge_label: string;
+  title: string;
+  body: string;
+  sort_order: number;
+};
+
+function mapBenefitNews(row: BenefitNewsRow): BenefitNewsItem {
+  return {
+    id: row.id,
+    badgeLabel: row.badge_label,
+    title: row.title,
+    body: row.body,
+    sortOrder: row.sort_order,
+  };
+}
+
+export const getBenefitNews = cache(async (): Promise<BenefitNewsItem[]> => {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("benefit_news")
+    .select("id,badge_label,title,body,sort_order")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: false });
+
+  if (error) {
+    console.error("[getBenefitNews] query failed:", error.message);
+    return [];
+  }
+
+  return (data ?? []).map((row) => mapBenefitNews(row as BenefitNewsRow));
+});
+
+export type StoreDetailData = {
+  store: Store | null;
+  meta: StoreUiMeta | null;
+  heroProducts: Product[];
+};
+
 type StoreRow = {
   id: string;
   name: string;
@@ -96,6 +144,31 @@ export const getMasterData = cache(async (): Promise<MasterData> => {
   );
 
   return { stores, products, storeUiById };
+});
+
+export const getStoreDetailById = cache(async (storeId: string): Promise<StoreDetailData> => {
+  const supabase = await createSupabaseServerClient();
+  const [storeRes, storeUiRes, productsRes] = await Promise.all([
+    supabase.from("stores").select("*").eq("id", storeId).eq("is_active", true).maybeSingle(),
+    supabase.from("store_ui_meta").select("*").eq("store_id", storeId).maybeSingle(),
+    supabase.from("products").select("*").eq("is_active", true).order("price_jpy").limit(3),
+  ]);
+
+  if (storeRes.error) {
+    console.error("[getStoreDetailById] stores query failed:", storeRes.error.message);
+  }
+  if (storeUiRes.error) {
+    console.error("[getStoreDetailById] store_ui_meta query failed:", storeUiRes.error.message);
+  }
+  if (productsRes.error) {
+    console.error("[getStoreDetailById] products query failed:", productsRes.error.message);
+  }
+
+  return {
+    store: storeRes.data ? mapStore(storeRes.data as StoreRow) : null,
+    meta: storeUiRes.data ? mapStoreUi(storeUiRes.data as StoreUiRow) : null,
+    heroProducts: (productsRes.data ?? []).map((row) => mapProduct(row as ProductRow)),
+  };
 });
 
 export async function getProductType(productId: string): Promise<ProductType> {

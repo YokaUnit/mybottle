@@ -7,8 +7,13 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 async function signInWithGoogle() {
   const supabase = createSupabaseBrowserClient();
-  const origin = window.location.origin;
-  const redirectTo = `${origin}/auth/callback?next=/`;
+  const configuredRedirectBase = process.env.NEXT_PUBLIC_AUTH_REDIRECT_URL;
+  const runtimeOrigin = window.location.origin;
+  const baseUrl =
+    process.env.NODE_ENV === "development"
+      ? runtimeOrigin
+      : configuredRedirectBase || process.env.NEXT_PUBLIC_APP_URL || runtimeOrigin;
+  const redirectTo = `${baseUrl.replace(/\/$/, "")}/auth/callback?next=/`;
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo },

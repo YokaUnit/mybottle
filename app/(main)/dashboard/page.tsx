@@ -1,6 +1,9 @@
 import { StoreDashboard } from "@/components/mybottle/store-dashboard";
+import { requireRole } from "@/lib/auth/roles";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  await requireRole(["staff", "admin"]);
+
   return (
     <main className="space-y-4 pb-4 pt-2">
       <header>
