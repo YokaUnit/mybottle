@@ -9,7 +9,7 @@ export default function MainLayout({
   return (
     <>
       <AppBrandHeader />
-      <div className="mx-auto w-full max-w-md px-5 pb-28 pt-14">
+      <div className="mx-auto w-full max-w-md overflow-x-clip px-4 pb-28 pt-14 sm:px-5">
         {children}
       </div>
       <AppNav />

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { GoogleMark } from "@/components/mybottle/login-mark";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -24,24 +23,34 @@ async function signInWithGoogle() {
 
 export function LoginPrimaryActions() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleGoogleSignIn() {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    const error = await signInWithGoogle();
+    if (error) {
+      setErrorMessage("ログインの開始に失敗しました。時間をおいて再度お試しください。");
+      setIsSubmitting(false);
+    }
+  }
 
   return (
-    <div className="mx-auto w-full max-w-sm space-y-4">
-      <motion.button
+    <div className="relative z-30 mx-auto w-full max-w-sm space-y-4">
+      <button
         type="button"
-        onClick={async () => {
-          setErrorMessage(null);
-          const error = await signInWithGoogle();
-          if (error) {
-            setErrorMessage("ログインの開始に失敗しました。時間をおいて再度お試しください。");
-          }
+        onClick={handleGoogleSignIn}
+        onTouchEnd={(event) => {
+          event.preventDefault();
+          void handleGoogleSignIn();
         }}
-        className="flex h-[4.8rem] w-full items-center justify-center gap-3 rounded-[1.35rem] bg-white px-4 text-center text-xl font-bold text-neutral-900 shadow-md ring-1 ring-black/5 transition active:bg-neutral-100"
-        whileTap={{ scale: 0.985 }}
+        disabled={isSubmitting}
+        className="flex h-[4.35rem] w-full touch-manipulation items-center justify-center gap-2.5 rounded-[1.2rem] bg-white px-4 text-center text-[clamp(1.2rem,5.2vw,1.45rem)] font-bold text-neutral-900 shadow-md ring-1 ring-black/5 transition active:bg-neutral-100 disabled:opacity-70"
       >
-        <GoogleMark className="h-7 w-7 shrink-0" />
-        Googleで続ける
-      </motion.button>
+        <GoogleMark className="h-6 w-6 shrink-0" />
+        {isSubmitting ? "移動中..." : "Googleで続ける"}
+      </button>
 
       <p className="flex items-center justify-center gap-2 text-[0.95rem] font-semibold text-white/85">
         <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" aria-hidden>

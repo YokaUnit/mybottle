@@ -33,8 +33,10 @@
 html,
 body {
   min-height: 100%;
+  width: 100%;
   background-color: var(--mb-bg);
   color: var(--mb-ink);
+  overflow-x: clip;
 }
 
 body {
@@ -43,6 +45,21 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
 }
 
 .mb-surface {
