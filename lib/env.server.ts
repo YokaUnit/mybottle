@@ -2,26 +2,10 @@ import { z } from "zod";
 
 const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  STRIPE_SECRET_KEY: z.preprocess(
-    (value) => {
-      if (typeof value === "string" && value.trim() === "") return undefined;
-      return value;
-    },
-    z.string().min(1).optional(),
-  ),
-  STRIPE_WEBHOOK_SECRET: z.preprocess(
-    (value) => {
-      if (typeof value === "string" && value.trim() === "") return undefined;
-      return value;
-    },
-    z.string().min(1).optional(),
-  ),
 });
 
 const parsed = serverSchema.safeParse({
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
 });
 
 if (!parsed.success) {
