@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { LoginPrimaryActions } from "@/components/mybottle/login-continue";
+import { LoginMerchantCta, LoginPrimaryActions } from "@/components/mybottle/login-continue";
 
 export default function LoginPage() {
   const prefersReducedMotion = useReducedMotion();
@@ -18,8 +18,8 @@ export default function LoginPage() {
         sizes="100vw"
       />
 
-      <div className="relative z-10 flex min-h-dvh flex-col px-5 pb-8 pt-[max(2.2rem,env(safe-area-inset-top))]">
-        <div className="flex flex-1 flex-col items-center justify-center gap-7">
+      <div className="relative z-10 flex min-h-dvh flex-col px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(2.2rem,env(safe-area-inset-top))]">
+        <div className="flex flex-1 flex-col items-center justify-center gap-7 pb-4">
           <motion.div
             initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
             animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
@@ -64,6 +64,14 @@ export default function LoginPage() {
           </motion.div>
         </div>
 
+        <motion.footer
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+          animate={prefersReducedMotion ? {} : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.18, ease: "easeOut" }}
+          className="mt-auto shrink-0 pt-2"
+        >
+          <LoginMerchantCta />
+        </motion.footer>
       </div>
     </main>
   );

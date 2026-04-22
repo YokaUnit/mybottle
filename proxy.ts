@@ -4,6 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 
 function isPublicPath(pathname: string) {
   if (pathname === "/login") return true;
+  if (pathname === "/staff") return true;
   if (pathname.startsWith("/auth/callback")) return true;
   if (pathname.startsWith("/_next")) return true;
   if (pathname.startsWith("/images/")) return true;
