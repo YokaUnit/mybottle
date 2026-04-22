@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { MB_SESSION_COOKIE } from "@/lib/mybottle/session-cookie";
+
+const MB_SESSION_COOKIE = "mb_session";
 
 function isPublicPath(pathname: string) {
   if (pathname === "/login") return true;
