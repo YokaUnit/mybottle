@@ -1,5 +1,4 @@
-/** ミドルウェアとクライアントで共有（アプリ内ルート通過用・認証の代替ではない） */
-export const MB_SESSION_COOKIE = "mb_session";
+import { MB_SESSION_COOKIE } from "@/lib/mybottle/session-cookie";
 
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
