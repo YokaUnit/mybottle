@@ -13,22 +13,31 @@ function isPublicPath(pathname: string) {
 }
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const session = request.cookies.get(MB_SESSION_COOKIE)?.value;
+  try {
+    const { pathname } = request.nextUrl;
+    const session = request.cookies.get(MB_SESSION_COOKIE)?.value;
 
-  if (pathname === "/login" && session) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
+    if (pathname === "/login" && session) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
 
-  if (isPublicPath(pathname)) {
+    if (isPublicPath(pathname)) {
+      return NextResponse.next();
+    }
+
+    if (!session) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+
+    return NextResponse.next();
+  } catch {
+    // Never break request flow due to proxy/middleware edge runtime issues.
     return NextResponse.next();
   }
-
-  if (!session) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  return NextResponse.next();
 }
 
 export const config = {
