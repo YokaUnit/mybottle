@@ -109,6 +109,7 @@ export async function purchaseAction(input: {
   storeId: string;
   productId: string;
   paymentMethod: PaymentMethod;
+  quantitySets?: number;
 }) {
   const supabase = await createSupabaseServerClient();
   const {
@@ -117,6 +118,8 @@ export async function purchaseAction(input: {
   const userId = requireUserId(user?.id);
   const product = await getProduct(input.productId);
   if (!product) throw new Error("商品が見つかりません");
+  const quantitySets = Math.max(1, Math.floor(input.quantitySets ?? 1));
+  const addedUnits = product.bundle_size * quantitySets;
 
   const { data: existing } = await supabase
     .from("user_stock")
@@ -126,7 +129,7 @@ export async function purchaseAction(input: {
     .eq("product_id", input.productId)
     .maybeSingle();
 
-  const nextRemaining = ((existing as { remaining_units?: number } | null)?.remaining_units ?? 0) + product.bundle_size;
+  const nextRemaining = ((existing as { remaining_units?: number } | null)?.remaining_units ?? 0) + addedUnits;
   if (existing && (existing as { id?: string }).id) {
     await supabase
       .from("user_stock")
@@ -146,8 +149,11 @@ export async function purchaseAction(input: {
     action: "purchase",
     storeId: input.storeId,
     product,
-    units: product.bundle_size,
-    detail: input.paymentMethod === "apple_pay" ? "店頭確認（Apple Pay）で登録" : "店頭確認で登録",
+    units: addedUnits,
+    detail:
+      input.paymentMethod === "apple_pay"
+        ? `店頭確認（Apple Pay）で${quantitySets}セット登録`
+        : `店頭確認で${quantitySets}セット登録`,
   });
 }
 

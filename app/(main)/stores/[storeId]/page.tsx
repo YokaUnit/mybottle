@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { bottleImageCandidates } from "@/lib/mybottle/bottle-images";
-import { Bolt, Clock3, MapPin, Navigation, Sparkles, Wine } from "lucide-react";
+import { Clock3, MapPin, Navigation, Sparkles, Wine } from "lucide-react";
 import { getStoreDetailById } from "@/lib/supabase/mybottle";
 
 type Props = {
@@ -11,7 +10,7 @@ type Props = {
 
 export default async function StoreDetailPage({ params }: Props) {
   const { storeId } = await params;
-  const { store, meta, heroProducts } = await getStoreDetailById(storeId);
+  const { store, meta } = await getStoreDetailById(storeId);
   if (!store) notFound();
 
   const safeMeta = meta ?? {
@@ -70,66 +69,18 @@ export default async function StoreDetailPage({ params }: Props) {
             </ul>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[var(--mb-ring)] bg-[var(--mb-card)] py-3.5 text-sm font-semibold text-[var(--mb-forest)] shadow-sm transition active:opacity-90"
-            >
-              <Bolt className="h-4 w-4" aria-hidden />
-              お店で即払う
-            </button>
+          <div className="space-y-2 rounded-[0.85rem] border border-[var(--mb-ring)] bg-[var(--mb-card)] p-3">
+            <p className="text-xs font-medium text-[var(--mb-forest-light)]">
+              お会計は店頭で行い、確認後にマイボトルへ反映されます。
+            </p>
             <Link
               href={`/products/step-2?storeId=${store.id}`}
-              className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[var(--mb-forest)] py-3.5 text-sm font-semibold text-white shadow-sm transition active:opacity-90"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[var(--mb-forest)] py-3.5 text-sm font-semibold text-white shadow-sm transition active:opacity-90"
             >
               <Wine className="h-4 w-4" aria-hidden />
-              3品買う
+              この店舗で購入を始める
             </Link>
           </div>
-        </div>
-      </section>
-
-      <section className="mb-surface p-5">
-        <div className="mb-4 flex items-end justify-between gap-3">
-          <h2 className="text-[1.25rem] font-semibold tracking-[-0.03em] text-[var(--mb-ink)]">ボトル商品・登録</h2>
-          <Link
-            href={`/products/step-2?storeId=${store.id}`}
-            className="shrink-0 text-sm font-medium text-[var(--mb-accent-dark)]"
-          >
-            すべて見る
-          </Link>
-        </div>
-        <div className="space-y-3">
-          {heroProducts.map((product) => (
-            <article
-              key={product.id}
-              className="flex items-center gap-3 rounded-[0.85rem] border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-3"
-            >
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[var(--mb-card)] ring-1 ring-[var(--mb-ring)]">
-                <Image
-                  src={bottleImageCandidates(product.id)[0]}
-                  alt={product.name}
-                  fill
-                  unoptimized
-                  className="object-contain p-1"
-                  sizes="56px"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-[var(--mb-ink)]">{product.name}</p>
-                <p className="text-xs font-medium text-[var(--mb-forest-light)]">
-                  {product.bundleSize}
-                  {product.unitLabel} / {new Intl.NumberFormat("ja-JP").format(product.priceJpy)}円
-                </p>
-              </div>
-              <Link
-                href={`/products/step-3?storeId=${store.id}&productId=${product.id}`}
-                className="shrink-0 rounded-full bg-[var(--mb-forest)] px-3 py-1.5 text-xs font-semibold text-white transition active:opacity-90"
-              >
-                この店で
-              </Link>
-            </article>
-          ))}
         </div>
       </section>
 

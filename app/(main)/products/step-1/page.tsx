@@ -9,7 +9,9 @@ export default async function ProductStep1Page() {
     <main className="space-y-4">
       <MobileStepHeader title="店舗を選択" step={1} />
       <section className="mb-surface space-y-3 p-5">
-        <p className="text-sm font-medium text-[var(--mb-forest-light)]">店頭で購入確認する店舗を選んでください</p>
+        <p className="text-sm font-medium text-[var(--mb-forest-light)]">
+          ボトルを受け取る店舗を選択してください（お会計は店頭で行います）
+        </p>
         {stores.map((store) => (
           <Link
             key={store.id}

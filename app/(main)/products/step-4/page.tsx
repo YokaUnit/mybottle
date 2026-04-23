@@ -11,11 +11,12 @@ export default async function ProductStep4Page({ searchParams }: Props) {
   const { products } = await getMasterData();
   const storeId = params.storeId ?? "chigasaki-a";
   const productId = params.productId ?? products[0]?.id ?? "";
-  const quantity = Math.max(Number(params.quantity ?? "1"), 1);
+  const parsedQuantity = Number(params.quantity ?? "1");
+  const quantity = Number.isFinite(parsedQuantity) ? Math.max(Math.floor(parsedQuantity), 1) : 1;
 
   return (
     <main className="space-y-4">
-      <MobileStepHeader title="店員に提示して登録" step={4} />
+      <MobileStepHeader title="お会計後に店員確認" step={4} />
       <ProductStep4Client storeId={storeId} productId={productId} quantity={quantity} />
     </main>
   );
