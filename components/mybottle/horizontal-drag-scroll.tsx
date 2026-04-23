@@ -30,10 +30,10 @@ export function HorizontalDragScroll({ children }: Props) {
   return (
     <div
       ref={scrollRef}
-      className={`-mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] md:cursor-grab md:active:cursor-grabbing [&::-webkit-scrollbar]:hidden ${
+      className={`mb-horizontal-scroll -mx-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] md:cursor-grab md:active:cursor-grabbing [&::-webkit-scrollbar]:hidden ${
         isDraggingUi ? "[scroll-snap-type:none]" : "[scroll-snap-type:x_mandatory]"
       }`}
-      style={{ touchAction: "pan-x", WebkitOverflowScrolling: "touch" }}
+      style={{ WebkitOverflowScrolling: "touch", scrollBehavior: "smooth" }}
       onMouseDown={(event) => {
         if (event.button !== 0) return;
         const el = scrollRef.current;

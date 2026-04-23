@@ -73,6 +73,19 @@ canvas {
   background-color: var(--mb-muted);
 }
 
+.mb-horizontal-scroll {
+  overscroll-behavior-x: contain;
+}
+
+.mb-horizontal-scroll :is(a, button, [role="button"]) {
+  touch-action: manipulation;
+}
+
+.mb-horizontal-scroll img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 .mb-screen-title {
   font-size: 1.3125rem;
   font-weight: 600;

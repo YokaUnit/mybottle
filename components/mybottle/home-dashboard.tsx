@@ -92,7 +92,7 @@ export function HomeDashboard() {
         </div>
         <div className="mt-4 h-px w-full bg-[var(--mb-muted-strong)]" aria-hidden />
         <p className="mt-3 text-[0.8125rem] font-medium text-[var(--mb-forest-light)]">
-          残量合計 <span className="text-[var(--mb-ink)]">{totalUnits}</span> ユニット
+          残量合計 <span className="text-[var(--mb-ink)]">{totalUnits}</span> 杯
         </p>
       </section>
 
@@ -126,10 +126,6 @@ export function HomeDashboard() {
                           key={`${item.storeId}-${item.productId}`}
                           href={`/bottle/${item.storeId}/${item.productId}`}
                           className="group w-[8.9rem] shrink-0 snap-start select-none overflow-hidden rounded-[0.95rem] border border-[var(--mb-ring)] bg-[var(--mb-card)] shadow-[var(--mb-shadow-card)] transition active:opacity-85"
-                          draggable={false}
-                          onDragStart={(event) => {
-                            event.preventDefault();
-                          }}
                         >
                           <div className="flex min-h-[7.6rem] items-end justify-center bg-[var(--mb-muted)] px-2 pb-1.5 pt-2.5">
                             <BottleProductImage

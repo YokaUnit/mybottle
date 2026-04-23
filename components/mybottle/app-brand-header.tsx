@@ -10,7 +10,7 @@ const brandFont = Outfit({
 
 export function AppBrandHeader() {
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-[var(--mb-ring)] bg-[var(--mb-card)]/90 backdrop-blur-[var(--mb-shell-blur)]">
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-[var(--mb-ring)] bg-[var(--mb-card)]">
       <div className="mx-auto flex h-14 w-full max-w-md items-center justify-between px-5">
         <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2.5">
           <div className="relative h-9 w-9 shrink-0">
