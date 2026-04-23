@@ -1,19 +1,24 @@
 import { MobileStepHeader } from "@/components/mybottle/mobile-step-header";
-import { ConsumeStep4Client } from "@/components/mybottle/consume-step4-client";
+import { ConsumeStep3Client } from "@/components/mybottle/consume-step3-client";
 
 type Props = {
-  searchParams: Promise<{ storeId?: string; productId?: string }>;
+  searchParams: Promise<{ storeId?: string; productId?: string; units?: string }>;
 };
 
 export default async function ConsumeStep4Page({ searchParams }: Props) {
   const params = await searchParams;
   const storeId = params.storeId ?? "";
   const productId = params.productId ?? "";
+  const units = Number(params.units ?? "1");
 
   return (
     <main className="space-y-4">
-      <MobileStepHeader title="使用を確定" step={4} />
-      <ConsumeStep4Client storeId={storeId} productId={productId} />
+      <MobileStepHeader title="店員に提示して確定" step={4} />
+      <ConsumeStep3Client
+        storeId={storeId}
+        productId={productId}
+        units={Number.isFinite(units) ? units : 1}
+      />
     </main>
   );
 }

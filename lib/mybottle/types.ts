@@ -11,6 +11,7 @@ export type Product = {
   bundleSize: number;
   priceJpy: number;
   description: string;
+  imagePath?: string | null;
 };
 
 export type Store = {

@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Gift, LayoutGrid, Newspaper } from "lucide-react";
 import type { BenefitNewsItem } from "@/lib/supabase/mybottle";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
+import { HorizontalDragScroll } from "@/components/mybottle/horizontal-drag-scroll";
+import { useMasterData } from "@/components/mybottle/master-data-provider";
 import { useStock } from "@/components/mybottle/stock-provider";
 
 type Tab = "all" | "news" | "coupon";
@@ -18,8 +21,15 @@ type Props = {
   initialNews: BenefitNewsItem[];
 };
 
+function expiryLabel(updatedAt: string) {
+  const d = new Date(updatedAt);
+  d.setMonth(d.getMonth() + 3);
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function BenefitsPageClient({ initialNews }: Props) {
   const { stock } = useStock();
+  const { stores } = useMasterData();
   const [tab, setTab] = useState<Tab>("all");
 
   const nearExpiry = stock.length > 0;
@@ -57,24 +67,41 @@ export function BenefitsPageClient({ initialNews }: Props) {
             <p className="mt-1.5 text-sm font-medium leading-relaxed text-[var(--mb-forest-light)]">
               ボトルの残量を確認し、早めにご来店ください。
             </p>
-            <ul className="mt-4 space-y-2">
-              {stock.map((item) => (
-                <li
-                  key={`${item.storeId}-${item.productId}`}
-                  className="flex items-center gap-3 rounded-[0.85rem] border border-[var(--mb-ring)] bg-[var(--mb-card)]/90 p-3"
-                >
-                  <BottleProductImage
-                    productId={item.productId}
-                    type={item.type}
-                    frameClassName="h-12 w-12 shrink-0"
-                    fallbackEmojiClassName="text-lg"
-                  />
-                  <span className="min-w-0 truncate text-sm font-medium text-[var(--mb-ink)]">
-                    {item.productName}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-4">
+              <HorizontalDragScroll>
+                <div className="flex w-max gap-2.5">
+                  {stock.map((item) => {
+                    const storeName = stores.find((store) => store.id === item.storeId)?.name ?? "加盟店";
+                    return (
+                      <Link
+                        key={`${item.storeId}-${item.productId}`}
+                        href={`/bottle/${item.storeId}/${item.productId}`}
+                        className="w-[8.9rem] shrink-0 snap-start overflow-hidden rounded-[0.95rem] border border-[var(--mb-ring)] bg-[var(--mb-card)]/95 shadow-[var(--mb-shadow-card)]"
+                      >
+                        <div className="flex min-h-[7.6rem] items-end justify-center bg-[var(--mb-muted)] px-2 pb-1.5 pt-2.5">
+                          <BottleProductImage
+                            productId={item.productId}
+                            type={item.type}
+                            frameClassName="h-[5.55rem] w-[5.55rem]"
+                            fallbackEmojiClassName="text-2xl"
+                            plain
+                          />
+                        </div>
+                        <div className="space-y-1 border-t border-[var(--mb-ring)] px-2.5 py-2">
+                          <p className="line-clamp-1 text-[0.8rem] font-semibold tracking-[-0.01em] text-[var(--mb-ink)]">
+                            {item.productName}
+                          </p>
+                          <p className="line-clamp-1 text-[10px] font-medium text-[var(--mb-forest-light)]">{storeName}</p>
+                          <p className="text-[10px] font-medium text-[var(--mb-forest-light)]">
+                            有効期限 {expiryLabel(item.updatedAt)}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </HorizontalDragScroll>
+            </div>
           </article>
         ) : null}
 

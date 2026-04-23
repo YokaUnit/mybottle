@@ -5,9 +5,11 @@ import { useEffect, useState } from "react";
 
 type Props = {
   value: number;
+  centerText?: string;
+  caption?: string;
 };
 
-export function AnimatedCircularGauge({ value }: Props) {
+export function AnimatedCircularGauge({ value, centerText, caption = "残量" }: Props) {
   const reducedMotion = useReducedMotion();
   const progress = useMotionValue(0);
   const clamped = Math.max(0, Math.min(100, value));
@@ -39,10 +41,9 @@ export function AnimatedCircularGauge({ value }: Props) {
       <div className="grid h-28 w-28 place-items-center rounded-full bg-[var(--mb-card)] text-center">
         <div>
           <motion.p className="text-2xl font-semibold tabular-nums tracking-tight text-[var(--mb-forest)]">
-            {shownPct}
-            %
+            {centerText ?? `${shownPct}%`}
           </motion.p>
-          <p className="text-[10px] text-[var(--mb-forest-light)]">残量</p>
+          <p className="text-[10px] text-[var(--mb-forest-light)]">{caption}</p>
         </div>
       </div>
     </motion.div>

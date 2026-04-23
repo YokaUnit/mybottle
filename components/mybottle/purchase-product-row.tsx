@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
 import type { Product } from "@/lib/mybottle/types";
-import { ChevronRight } from "lucide-react";
 
 type Props = {
   storeId: string;
@@ -14,22 +13,28 @@ export function PurchaseProductRow({ storeId, product }: Props) {
   return (
     <Link
       href={`/products/step-3?storeId=${storeId}&productId=${product.id}`}
-      className="flex items-center gap-4 rounded-[var(--mb-radius-card)] border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-4 transition active:opacity-85"
+      className="group w-[8.9rem] shrink-0 snap-start select-none overflow-hidden rounded-[0.95rem] border border-[var(--mb-ring)] bg-[var(--mb-card)] shadow-[var(--mb-shadow-card)] transition active:opacity-85"
+      draggable={false}
     >
-      <BottleProductImage
-        key={product.id}
-        productId={product.id}
-        type={product.type}
-        frameClassName="h-16 w-16"
-        fallbackEmojiClassName="text-2xl"
-      />
-      <div className="min-w-0 flex-1">
-        <p className="text-base font-semibold tracking-[-0.02em] text-[var(--mb-ink)]">{product.name}</p>
-        <p className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-[var(--mb-forest-light)]">
-          {product.description}
+      <div className="flex min-h-[7.6rem] items-end justify-center bg-[var(--mb-muted)] px-2 pb-1.5 pt-2.5">
+        <BottleProductImage
+          key={product.id}
+          productId={product.id}
+          type={product.type}
+          frameClassName="h-[5.55rem] w-[5.55rem]"
+          fallbackEmojiClassName="text-2xl"
+          plain
+        />
+      </div>
+      <div className="space-y-1 border-t border-[var(--mb-ring)] px-2.5 py-2">
+        <p className="line-clamp-1 text-[0.8rem] font-semibold tracking-[-0.01em] text-[var(--mb-ink)]">
+          {product.name}
+        </p>
+        <p className="text-[10px] font-medium text-[var(--mb-forest-light)]">
+          1セット: {product.bundleSize}
+          {product.unitLabel}
         </p>
       </div>
-      <ChevronRight className="h-5 w-5 shrink-0 text-[var(--mb-forest-light)]" aria-hidden strokeWidth={2} />
     </Link>
   );
 }

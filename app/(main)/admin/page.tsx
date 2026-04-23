@@ -1,9 +1,13 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { requireRole } from "@/lib/auth/roles";
 import {
+  addStaffStoreMembershipAction,
+  approvePriceChangeRequestAction,
   createBenefitNewsAction,
   deleteBenefitNewsAction,
+  rejectPriceChangeRequestAction,
   toggleStoreActiveAction,
+  toggleStaffStoreMembershipAction,
   updateBenefitNewsAction,
   updateProductAction,
   updateStoreUiMetaAction,
@@ -42,6 +46,7 @@ type ProductAdminRow = {
   price_jpy: number;
   bundle_size: number;
   description: string;
+  image_path: string | null;
   is_active: boolean;
 };
 
@@ -54,27 +59,69 @@ type BenefitNewsAdminRow = {
   is_active: boolean;
 };
 
+type StaffMembershipRow = {
+  id: string;
+  user_id: string;
+  store_id: string;
+  is_active: boolean;
+  stores: { name: string } | null;
+};
+
+type PriceRequestAdminRow = {
+  id: string;
+  store_id: string;
+  product_id: string;
+  requested_price_jpy: number;
+  reason: string;
+  status: "pending" | "approved" | "rejected" | "cancelled";
+  created_at: string;
+  requested_by: string;
+  stores: { name: string } | null;
+  products: { name: string } | null;
+};
+
 export default async function AdminPage() {
   noStore();
   const { role } = await requireRole(["admin"]);
-  const [{ data: profiles }, { data: stores }, { data: storeUiRows }, { data: products }, { data: benefitNewsRows }] =
-    await Promise.all([
-      supabaseAdmin
-        .from("profiles")
-        .select("id,email,display_name,role,created_at")
-        .order("created_at", { ascending: false })
-        .limit(100),
-      supabaseAdmin.from("stores").select("id,name,area,is_active").order("name"),
-      supabaseAdmin.from("store_ui_meta").select("store_id,image_src,intro,features,open_hours"),
-      supabaseAdmin.from("products").select("id,name,category,type,price_jpy,bundle_size,description,is_active").order("name"),
-      supabaseAdmin.from("benefit_news").select("id,badge_label,title,body,sort_order,is_active").order("sort_order", {
-        ascending: false,
-      }),
-    ]);
+  const [
+    { data: profiles },
+    { data: stores },
+    { data: storeUiRows },
+    { data: products },
+    { data: benefitNewsRows },
+    { data: staffProfiles },
+    { data: memberships },
+    { data: pendingPriceRequests },
+  ] = await Promise.all([
+    supabaseAdmin
+      .from("profiles")
+      .select("id,email,display_name,role,created_at")
+      .order("created_at", { ascending: false })
+      .limit(100),
+    supabaseAdmin.from("stores").select("id,name,area,is_active").order("name"),
+    supabaseAdmin.from("store_ui_meta").select("store_id,image_src,intro,features,open_hours"),
+    supabaseAdmin.from("products").select("id,name,category,type,price_jpy,bundle_size,description,image_path,is_active").order("name"),
+    supabaseAdmin.from("benefit_news").select("id,badge_label,title,body,sort_order,is_active").order("sort_order", {
+      ascending: false,
+    }),
+    supabaseAdmin.from("profiles").select("id,email,display_name,role").eq("role", "staff").order("created_at"),
+    supabaseAdmin
+      .from("staff_store_memberships")
+      .select("id,user_id,store_id,is_active,stores(name)")
+      .order("created_at", { ascending: false }),
+    supabaseAdmin
+      .from("store_product_price_change_requests")
+      .select("id,store_id,product_id,requested_price_jpy,reason,status,created_at,requested_by,stores(name),products(name)")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true }),
+  ]);
 
   const storeUiById = Object.fromEntries(
     (storeUiRows ?? []).map((row) => [row.store_id, row as StoreUiAdminRow]),
   ) as Record<string, StoreUiAdminRow>;
+  const profileById = Object.fromEntries(
+    ((profiles as ProfileAdminRow[] | null) ?? []).map((profile) => [profile.id, profile]),
+  ) as Record<string, ProfileAdminRow>;
 
   return (
     <main className="space-y-4 pb-4 pt-2">
@@ -128,6 +175,127 @@ export default async function AdminPage() {
                 </div>
               </form>
             ))}
+          </div>
+        </details>
+      </section>
+
+      <section className="mb-surface p-5">
+        <details className="[&_summary::-webkit-details-marker]:hidden">
+          <summary className="list-none cursor-pointer">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-[var(--mb-ink)]">スタッフ所属店舗管理</h2>
+              <span className="text-xs font-semibold text-[var(--mb-forest-light)]">▼ 開く</span>
+            </div>
+            <p className="mt-1 text-xs font-medium text-[var(--mb-forest-light)]">
+              staffユーザーに担当店舗を付与し、価格変更申請可能な範囲を制御します。
+            </p>
+          </summary>
+          <div className="mt-3 space-y-3">
+            <form action={addStaffStoreMembershipAction} className="rounded-lg border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-3">
+              <p className="mb-2 text-xs font-semibold text-[var(--mb-forest-light)]">新規紐付け</p>
+              <div className="grid grid-cols-2 gap-2">
+                <select name="user_id" required className="h-9 rounded-md border border-[var(--mb-ring)] bg-white px-2 text-sm">
+                  <option value="">staffを選択</option>
+                  {((staffProfiles as { id: string; display_name: string | null; email: string | null }[] | null) ?? []).map(
+                    (staff) => (
+                      <option key={staff.id} value={staff.id}>
+                        {(staff.display_name ?? "名前未設定") + " / " + (staff.email ?? "メール未設定")}
+                      </option>
+                    ),
+                  )}
+                </select>
+                <select name="store_id" required className="h-9 rounded-md border border-[var(--mb-ring)] bg-white px-2 text-sm">
+                  <option value="">店舗を選択</option>
+                  {((stores as StoreAdminRow[] | null) ?? []).map((store) => (
+                    <option key={store.id} value={store.id}>
+                      {store.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className="mt-2 rounded-full bg-[var(--mb-forest)] px-3 py-2 text-xs font-semibold text-white">
+                紐付けを追加
+              </button>
+            </form>
+
+            <div className="space-y-2">
+              {((memberships as StaffMembershipRow[] | null) ?? []).map((membership) => (
+                <article key={membership.id} className="rounded-lg border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-3">
+                  <p className="text-sm font-semibold text-[var(--mb-ink)]">
+                    {profileById[membership.user_id]?.display_name ?? "名前未設定"}
+                  </p>
+                  <p className="text-xs text-[var(--mb-forest-light)]">
+                    {profileById[membership.user_id]?.email ?? "メール未設定"}
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-[var(--mb-forest-light)]">担当店舗: {membership.stores?.name ?? "-"}</p>
+                  <form action={toggleStaffStoreMembershipAction} className="mt-2">
+                    <input type="hidden" name="membership_id" value={membership.id} />
+                    <input type="hidden" name="next_active" value={membership.is_active ? "false" : "true"} />
+                    <button type="submit" className="rounded-full border border-[var(--mb-ring)] bg-white px-3 py-1.5 text-xs font-semibold">
+                      {membership.is_active ? "無効化" : "有効化"}
+                    </button>
+                  </form>
+                </article>
+              ))}
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section className="mb-surface p-5">
+        <details className="[&_summary::-webkit-details-marker]:hidden">
+          <summary className="list-none cursor-pointer">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-[var(--mb-ink)]">価格変更申請（承認待ち）</h2>
+              <span className="text-xs font-semibold text-[var(--mb-forest-light)]">▼ 開く</span>
+            </div>
+            <p className="mt-1 text-xs font-medium text-[var(--mb-forest-light)]">
+              staffの価格変更申請を承認/却下します。承認時に店舗価格へ即時反映されます。
+            </p>
+          </summary>
+          <div className="mt-3 space-y-2">
+            {((pendingPriceRequests as PriceRequestAdminRow[] | null) ?? []).map((req) => (
+              <article key={req.id} className="rounded-lg border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-3">
+                <p className="text-sm font-semibold text-[var(--mb-ink)]">
+                  {req.stores?.name ?? "-"} / {req.products?.name ?? "-"}
+                </p>
+                <p className="mt-1 text-xs font-medium text-[var(--mb-forest-light)]">
+                  申請価格: {req.requested_price_jpy.toLocaleString("ja-JP")}円
+                </p>
+                <p className="mt-1 text-xs font-medium text-[var(--mb-forest-light)]">理由: {req.reason}</p>
+                <p className="mt-1 text-xs font-medium text-[var(--mb-forest-light)]">
+                  申請者: {profileById[req.requested_by]?.display_name ?? "名前未設定"} /{" "}
+                  {profileById[req.requested_by]?.email ?? "メール未設定"}
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <form action={approvePriceChangeRequestAction} className="flex-1 space-y-2">
+                    <input type="hidden" name="request_id" value={req.id} />
+                    <input
+                      name="review_note"
+                      className="w-full rounded-md border border-[var(--mb-ring)] bg-white px-3 py-2 text-xs"
+                      placeholder="承認コメント（任意）"
+                    />
+                    <button type="submit" className="w-full rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-white">
+                      承認
+                    </button>
+                  </form>
+                  <form action={rejectPriceChangeRequestAction} className="flex-1 space-y-2">
+                    <input type="hidden" name="request_id" value={req.id} />
+                    <input
+                      name="review_note"
+                      className="w-full rounded-md border border-[var(--mb-ring)] bg-white px-3 py-2 text-xs"
+                      placeholder="却下理由（任意）"
+                    />
+                    <button type="submit" className="w-full rounded-full bg-red-600 px-3 py-2 text-xs font-semibold text-white">
+                      却下
+                    </button>
+                  </form>
+                </div>
+              </article>
+            ))}
+            {((pendingPriceRequests as PriceRequestAdminRow[] | null) ?? []).length === 0 ? (
+              <p className="text-sm font-medium text-[var(--mb-forest-light)]">承認待ち申請はありません。</p>
+            ) : null}
           </div>
         </details>
       </section>
@@ -256,6 +424,12 @@ export default async function AdminPage() {
                   rows={2}
                   className="mt-2 w-full rounded-md border border-[var(--mb-ring)] bg-white px-3 py-2 text-sm"
                   placeholder="説明"
+                />
+                <input
+                  name="image_path"
+                  defaultValue={product.image_path ?? ""}
+                  className="mt-2 w-full rounded-md border border-[var(--mb-ring)] bg-white px-3 py-2 text-sm"
+                  placeholder="画像パス（例: products/whisky-1.webp）"
                 />
                 <div className="mt-2 flex items-center gap-2">
                   <select

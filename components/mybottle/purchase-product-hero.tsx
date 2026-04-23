@@ -8,6 +8,8 @@ type Props = {
 };
 
 export function PurchaseProductHero({ product }: Props) {
+  const unitPrice = new Intl.NumberFormat("ja-JP").format(product.priceJpy);
+
   return (
     <div className="flex gap-4 rounded-[0.85rem] border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-4">
       <BottleProductImage
@@ -21,6 +23,7 @@ export function PurchaseProductHero({ product }: Props) {
         <p className="mb-label-caps">選択中</p>
         <p className="mt-2 text-lg font-semibold tracking-[-0.02em] text-[var(--mb-ink)]">{product.name}</p>
         <p className="mt-2 text-sm font-medium leading-relaxed text-[var(--mb-forest-light)]">{product.description}</p>
+        <p className="mt-2 text-sm font-semibold text-[var(--mb-ink)]">1セット: ¥{unitPrice}</p>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ export default function LoginPage() {
         sizes="100vw"
       />
       <div className="relative z-20 flex min-h-dvh flex-col px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(2.2rem,env(safe-area-inset-top))]">
-        <div className="flex flex-1 flex-col items-center justify-center gap-7 pb-4">
+        <div className="flex flex-1 flex-col items-center justify-center gap-8 pb-4">
           <div
             className="relative w-[min(92vw,420px)] drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]"
             style={{ aspectRatio: "280 / 120" }}
@@ -31,19 +31,21 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="w-full max-w-sm space-y-2.5 text-center text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.55)]">
-            <h1 className="whitespace-nowrap text-[clamp(1.4rem,6.2vw,2.1rem)] font-black leading-[1.2] tracking-[-0.02em]">
-              ボトルキープを、もっとスマートに。
-            </h1>
-            <p className="text-[0.95rem] font-semibold leading-[1.75] text-white/88">
-              お気に入りのボトルを、アプリでかんたん管理。
-              <br />
-              お店でも、いつもの一杯を。
-            </p>
-          </div>
+          <div className="w-full max-w-[19.5rem] space-y-10 text-center text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]">
+            <div className="space-y-4 px-1">
+              <h1 className="whitespace-nowrap text-[clamp(1.2rem,5.4vw,1.55rem)] font-semibold leading-snug tracking-[-0.03em]">
+                ボトルキープを、もっとスマートに。
+              </h1>
+              <p className="text-[0.8125rem] font-medium leading-[1.85] tracking-[-0.01em] text-white/78">
+                お気に入りのボトルを、アプリでかんたん管理。
+                <br />
+                お店でも、いつもの一杯を。
+              </p>
+            </div>
 
-          <div className="relative z-30 w-full">
-            <LoginPrimaryActions />
+            <div className="relative z-30 w-full px-0.5">
+              <LoginPrimaryActions />
+            </div>
           </div>
         </div>
 

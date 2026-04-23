@@ -19,7 +19,7 @@ type StockContextValue = {
     productId: string;
     paymentMethod: PaymentMethod;
   }) => Promise<void>;
-  consume: (params: { storeId: string; productId: string }) => Promise<boolean>;
+  consume: (params: { storeId: string; productId: string; units?: number }) => Promise<boolean>;
   giftOne: (params: { storeId: string; productId: string; friendName: string }) => Promise<boolean>;
   transferOneToAnotherStore: (params: {
     fromStoreId: string;
@@ -81,8 +81,16 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
   );
 
   const consume = useCallback(
-    async ({ storeId, productId }: { storeId: string; productId: string }) => {
-      const ok = await consumeAction({ storeId, productId });
+    async ({
+      storeId,
+      productId,
+      units,
+    }: {
+      storeId: string;
+      productId: string;
+      units?: number;
+    }) => {
+      const ok = await consumeAction({ storeId, productId, units });
       await refreshState();
       return ok;
     },

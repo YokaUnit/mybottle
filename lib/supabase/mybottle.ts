@@ -82,7 +82,13 @@ type ProductRow = {
   bundle_size: number;
   price_jpy: number;
   description: string;
+  image_path: string | null;
   is_active: boolean;
+};
+
+type StoreProductJoinedRow = {
+  current_price_jpy: number;
+  products: ProductRow | ProductRow[] | null;
 };
 
 type StoreUiRow = {
@@ -114,6 +120,7 @@ function mapProduct(row: ProductRow): Product {
     bundleSize: row.bundle_size,
     priceJpy: row.price_jpy,
     description: row.description,
+    imagePath: row.image_path,
   };
 }
 
@@ -151,7 +158,13 @@ export const getStoreDetailById = cache(async (storeId: string): Promise<StoreDe
   const [storeRes, storeUiRes, productsRes] = await Promise.all([
     supabase.from("stores").select("*").eq("id", storeId).eq("is_active", true).maybeSingle(),
     supabase.from("store_ui_meta").select("*").eq("store_id", storeId).maybeSingle(),
-    supabase.from("products").select("*").eq("is_active", true).order("price_jpy").limit(3),
+    supabase
+      .from("store_products")
+      .select("current_price_jpy,products!inner(id,name,type,category,unit_label,bundle_size,price_jpy,description,is_active)")
+      .eq("store_id", storeId)
+      .eq("is_active", true)
+      .order("current_price_jpy")
+      .limit(3),
   ]);
 
   if (storeRes.error) {
@@ -161,13 +174,25 @@ export const getStoreDetailById = cache(async (storeId: string): Promise<StoreDe
     console.error("[getStoreDetailById] store_ui_meta query failed:", storeUiRes.error.message);
   }
   if (productsRes.error) {
-    console.error("[getStoreDetailById] products query failed:", productsRes.error.message);
+    console.error("[getStoreDetailById] store_products query failed:", productsRes.error.message);
   }
+
+  const heroProducts: Product[] = (productsRes.data ?? []).flatMap((row) => {
+    const typed = row as StoreProductJoinedRow;
+    const productRaw = Array.isArray(typed.products) ? typed.products[0] : typed.products;
+    if (!productRaw) return [];
+    return [
+      mapProduct({
+        ...productRaw,
+        price_jpy: typed.current_price_jpy,
+      }),
+    ];
+  });
 
   return {
     store: storeRes.data ? mapStore(storeRes.data as StoreRow) : null,
     meta: storeUiRes.data ? mapStoreUi(storeUiRes.data as StoreUiRow) : null,
-    heroProducts: (productsRes.data ?? []).map((row) => mapProduct(row as ProductRow)),
+    heroProducts,
   };
 });
 

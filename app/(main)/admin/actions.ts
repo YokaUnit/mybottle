@@ -69,6 +69,7 @@ export async function updateProductAction(formData: FormData) {
   const priceJpyRaw = Number(formData.get("price_jpy")?.toString() ?? "0");
   const bundleSizeRaw = Number(formData.get("bundle_size")?.toString() ?? "1");
   const description = (formData.get("description")?.toString() ?? "").trim();
+  const imagePath = (formData.get("image_path")?.toString() ?? "").trim();
   const isActive = formData.get("is_active")?.toString() === "true";
 
   const priceJpy = Number.isFinite(priceJpyRaw) ? Math.max(0, Math.round(priceJpyRaw)) : 0;
@@ -80,6 +81,7 @@ export async function updateProductAction(formData: FormData) {
       price_jpy: priceJpy,
       bundle_size: bundleSize,
       description,
+      image_path: imagePath || null,
       is_active: isActive,
     })
     .eq("id", productId);
@@ -148,4 +150,63 @@ export async function deleteBenefitNewsAction(formData: FormData) {
   await supabaseAdmin.from("benefit_news").delete().eq("id", id);
   revalidateAdminTree();
   revalidatePath("/benefits");
+}
+
+export async function addStaffStoreMembershipAction(formData: FormData) {
+  await requireRole(["admin"]);
+  const userId = formData.get("user_id")?.toString();
+  const storeId = formData.get("store_id")?.toString();
+  if (!userId || !storeId) return;
+
+  await supabaseAdmin.from("staff_store_memberships").upsert(
+    {
+      user_id: userId,
+      store_id: storeId,
+      is_active: true,
+    },
+    { onConflict: "user_id,store_id" },
+  );
+  revalidateAdminTree();
+  revalidatePath("/dashboard/pricing");
+}
+
+export async function toggleStaffStoreMembershipAction(formData: FormData) {
+  await requireRole(["admin"]);
+  const membershipId = formData.get("membership_id")?.toString();
+  const nextActive = formData.get("next_active")?.toString() === "true";
+  if (!membershipId) return;
+
+  await supabaseAdmin.from("staff_store_memberships").update({ is_active: nextActive }).eq("id", membershipId);
+  revalidateAdminTree();
+  revalidatePath("/dashboard/pricing");
+}
+
+export async function approvePriceChangeRequestAction(formData: FormData) {
+  const { user } = await requireRole(["admin"]);
+  const requestId = formData.get("request_id")?.toString();
+  const reviewNote = (formData.get("review_note")?.toString() ?? "").trim();
+  if (!requestId) return;
+
+  await supabaseAdmin.rpc("approve_store_product_price_request", {
+    request_id: requestId,
+    reviewer_id: user.id,
+    note: reviewNote || null,
+  });
+  revalidateAdminTree();
+  revalidatePath("/dashboard/pricing");
+}
+
+export async function rejectPriceChangeRequestAction(formData: FormData) {
+  const { user } = await requireRole(["admin"]);
+  const requestId = formData.get("request_id")?.toString();
+  const reviewNote = (formData.get("review_note")?.toString() ?? "").trim();
+  if (!requestId) return;
+
+  await supabaseAdmin.rpc("reject_store_product_price_request", {
+    request_id: requestId,
+    reviewer_id: user.id,
+    note: reviewNote || null,
+  });
+  revalidateAdminTree();
+  revalidatePath("/dashboard/pricing");
 }

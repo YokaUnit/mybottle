@@ -151,7 +151,11 @@ export async function purchaseAction(input: {
   });
 }
 
-export async function consumeAction(input: { storeId: string; productId: string }): Promise<boolean> {
+export async function consumeAction(input: {
+  storeId: string;
+  productId: string;
+  units?: number;
+}): Promise<boolean> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -160,18 +164,21 @@ export async function consumeAction(input: { storeId: string; productId: string 
   const product = await getProduct(input.productId);
   if (!product) return false;
 
+  const requestedUnits = Math.max(1, Math.floor(input.units ?? 1));
+
   const { data: rows } = await supabase
     .from("user_stock")
-    .select("id,store_id,remaining_units")
+    .select("id,remaining_units")
     .eq("user_id", userId)
+    .eq("store_id", input.storeId)
     .eq("product_id", input.productId)
-    .gt("remaining_units", 0);
+    .gte("remaining_units", requestedUnits);
 
-  const candidates = (rows as { id: string; store_id: string; remaining_units: number }[] | null) ?? [];
-  const target = candidates.find((row) => row.store_id === input.storeId) ?? (product.type === "virtual" ? candidates[0] : null);
+  const candidates = (rows as { id: string; remaining_units: number }[] | null) ?? [];
+  const target = candidates[0] ?? null;
   if (!target) return false;
 
-  const next = Math.max(0, target.remaining_units - 1);
+  const next = Math.max(0, target.remaining_units - requestedUnits);
   if (next === 0) {
     await supabase.from("user_stock").delete().eq("id", target.id);
   } else {
@@ -183,8 +190,8 @@ export async function consumeAction(input: { storeId: string; productId: string 
     action: "consume",
     storeId: input.storeId,
     product,
-    units: 1,
-    detail: "提示確認で提供",
+    units: requestedUnits,
+    detail: `提示確認で${requestedUnits}${product.unit_label}提供`,
   });
   return true;
 }

@@ -21,7 +21,7 @@ function expiryLabel(updatedAt: string) {
 
 export function BottleDetailClient({ storeId, productId }: Props) {
   const router = useRouter();
-  const { stock, logs, setRemainingUnits, removeBottle } = useStock();
+  const { stock, logs, removeBottle } = useStock();
   const { products, stores } = useMasterData();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -80,21 +80,21 @@ export function BottleDetailClient({ storeId, productId }: Props) {
         </div>
 
         <div className="mb-surface flex flex-col items-center px-5 py-8">
-          <AnimatedCircularGauge value={pct} />
-          <p className="mt-4 text-sm font-medium text-[var(--mb-ink)]">残り約 {daysLeft} 日</p>
+          <AnimatedCircularGauge
+            value={pct}
+            centerText={`${item.remainingUnits}${item.unitLabel}`}
+            caption="残量"
+          />
+          <p className="mt-3 text-xs font-medium text-[var(--mb-forest-light)]">有効期限まで約 {daysLeft} 日</p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            className="rounded-full bg-[var(--mb-forest)] py-3.5 text-sm font-semibold text-white transition active:opacity-90"
-            onClick={async () => {
-              const next = Math.max(1, Math.round(max * 0.6));
-              await setRemainingUnits({ storeId, productId, remainingUnits: next });
-            }}
+          <Link
+            href={`/products/step-2?storeId=${storeId}`}
+            className="rounded-full bg-[var(--mb-forest)] py-3.5 text-center text-sm font-semibold text-white transition active:opacity-90"
           >
-            残量を更新
-          </button>
+            ボトルを追加する
+          </Link>
           <Link
             href={`/consume/step-1?storeId=${storeId}&productId=${productId}`}
             className="rounded-full border border-[var(--mb-forest)]/30 bg-[var(--mb-card)] py-3.5 text-center text-sm font-semibold text-[var(--mb-forest)] ring-1 ring-[var(--mb-ring)] transition active:opacity-90"

@@ -37,19 +37,19 @@ export function LoginPrimaryActions() {
   }
 
   return (
-    <div className="relative z-30 mx-auto w-full max-w-sm space-y-4">
+    <div className="relative z-30 mx-auto w-full max-w-sm space-y-5">
       <button
         type="button"
         onClick={handleGoogleSignIn}
         disabled={isSubmitting}
-        className="flex h-[4.35rem] w-full touch-manipulation items-center justify-center gap-2.5 rounded-[1.2rem] bg-white px-4 text-center text-[clamp(1.2rem,5.2vw,1.45rem)] font-bold text-neutral-900 shadow-md ring-1 ring-black/5 transition active:bg-neutral-100 disabled:opacity-70"
+        className="flex h-12 w-full touch-manipulation items-center justify-center gap-2.5 rounded-full bg-white px-5 text-center text-[0.9375rem] font-semibold tracking-[-0.01em] text-neutral-900 shadow-sm ring-1 ring-black/[0.06] transition active:bg-neutral-100 disabled:opacity-70"
       >
-        <GoogleMark className="h-6 w-6 shrink-0" />
+        <GoogleMark className="h-5 w-5 shrink-0" />
         {isSubmitting ? "移動中..." : "Googleで続ける"}
       </button>
 
-      <p className="flex items-center justify-center gap-2 text-[0.95rem] font-semibold text-white/85">
-        <svg className="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <p className="flex items-center justify-center gap-1.5 text-xs font-medium text-white/72">
+        <svg className="h-3.5 w-3.5 shrink-0 opacity-90" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path
             d="M7.5 10V8a4.5 4.5 0 1 1 9 0v2m-10 0h11a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z"
             stroke="currentColor"

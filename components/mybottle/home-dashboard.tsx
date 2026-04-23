@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatedLinearGauge } from "@/components/mybottle/animated-linear-gauge";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
+import { HorizontalDragScroll } from "@/components/mybottle/horizontal-drag-scroll";
 import { useStock } from "@/components/mybottle/stock-provider";
 import { useMasterData } from "@/components/mybottle/master-data-provider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -24,6 +25,18 @@ export function HomeDashboard() {
     () => [...stock].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
     [stock],
   );
+  const stockByStore = useMemo(() => {
+    const grouped = sorted.reduce<Record<string, typeof sorted>>((acc, item) => {
+      if (!acc[item.storeId]) acc[item.storeId] = [];
+      acc[item.storeId].push(item);
+      return acc;
+    }, {});
+    return Object.entries(grouped).sort((a, b) => {
+      const aName = stores.find((s) => s.id === a[0])?.name ?? a[0];
+      const bName = stores.find((s) => s.id === b[0])?.name ?? b[0];
+      return aName.localeCompare(bName, "ja");
+    });
+  }, [sorted, stores]);
 
   useEffect(() => {
     let active = true;
@@ -77,7 +90,7 @@ export function HomeDashboard() {
         </p>
       </section>
 
-      <div className="space-y-3">
+      <div className="space-y-5">
         {sorted.length === 0 ? (
           <div className="mb-surface px-5 py-10 text-center">
             <p className="text-sm font-medium text-[var(--mb-forest-light)]">まだボトルがありません。</p>
@@ -89,44 +102,63 @@ export function HomeDashboard() {
             </Link>
           </div>
         ) : (
-          sorted.map((item) => {
-            const product = products.find((c) => c.id === item.productId);
-            const max = product?.bundleSize ?? 5;
-            const pct = Math.min(100, Math.round((item.remainingUnits / max) * 100));
-            const storeName = stores.find((s) => s.id === item.storeId)?.name ?? "加盟店";
+          stockByStore.map(([storeId, items]) => {
+            const storeName = stores.find((s) => s.id === storeId)?.name ?? "加盟店";
             return (
-              <Link
-                key={`${item.storeId}-${item.productId}`}
-                href={`/bottle/${item.storeId}/${item.productId}`}
-                className="mb-surface block p-4 active:opacity-80"
-              >
-                <div className="flex gap-4">
-                  <BottleProductImage
-                    key={`${item.storeId}-${item.productId}`}
-                    productId={item.productId}
-                    type={item.type}
-                    frameClassName="h-[4.75rem] w-[4.75rem]"
-                    fallbackEmojiClassName="text-3xl"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[1.05rem] font-semibold tracking-[-0.02em] text-[var(--mb-ink)]">
-                      {item.productName}
-                    </p>
-                    <p className="mt-0.5 truncate text-[0.8125rem] font-medium text-[var(--mb-forest-light)]">
-                      {storeName}
-                    </p>
-                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--mb-muted-strong)]">
-                      <AnimatedLinearGauge
-                        value={pct}
-                        className="h-full rounded-full bg-[var(--mb-forest)]"
-                      />
-                    </div>
-                    <p className="mt-2 text-[0.6875rem] font-medium text-[var(--mb-forest-light)]">
-                      残り {pct}% · 有効期限 {expiryLabel(item.updatedAt)}
-                    </p>
+              <section key={storeId} className="space-y-2">
+                <h2 className="text-[0.82rem] font-semibold uppercase tracking-[0.12em] text-[var(--mb-forest-light)]">
+                  {storeName}
+                </h2>
+                <HorizontalDragScroll>
+                  <div className="flex w-max gap-2.5">
+                    {items.map((item) => {
+                      const product = products.find((c) => c.id === item.productId);
+                      const max = product?.bundleSize ?? 5;
+                      const pct = Math.min(100, Math.round((item.remainingUnits / max) * 100));
+                      return (
+                        <Link
+                          key={`${item.storeId}-${item.productId}`}
+                          href={`/bottle/${item.storeId}/${item.productId}`}
+                          className="group w-[8.9rem] shrink-0 snap-start select-none overflow-hidden rounded-[0.95rem] border border-[var(--mb-ring)] bg-[var(--mb-card)] shadow-[var(--mb-shadow-card)] transition active:opacity-85"
+                          draggable={false}
+                          onDragStart={(event) => {
+                            event.preventDefault();
+                          }}
+                        >
+                          <div className="flex min-h-[7.6rem] items-end justify-center bg-[var(--mb-muted)] px-2 pb-1.5 pt-2.5">
+                            <BottleProductImage
+                              key={`${item.storeId}-${item.productId}`}
+                              productId={item.productId}
+                              type={item.type}
+                              frameClassName="h-[5.55rem] w-[5.55rem]"
+                              fallbackEmojiClassName="text-2xl"
+                              plain
+                            />
+                          </div>
+                          <div className="space-y-1 border-t border-[var(--mb-ring)] px-2.5 py-2">
+                            <p className="line-clamp-1 text-[0.8rem] font-semibold tracking-[-0.01em] text-[var(--mb-ink)]">
+                              {item.productName}
+                            </p>
+                            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[var(--mb-muted-strong)]">
+                              <AnimatedLinearGauge
+                                value={pct}
+                                className="h-full rounded-full bg-[var(--mb-forest)]"
+                              />
+                            </div>
+                            <p className="text-[10px] font-medium text-[var(--mb-forest-light)]">
+                              残り {item.remainingUnits}
+                              {item.unitLabel}
+                            </p>
+                            <p className="text-[10px] font-medium text-[var(--mb-forest-light)]">
+                              有効期限 {expiryLabel(item.updatedAt)}
+                            </p>
+                          </div>
+                        </Link>
+                      );
+                    })}
                   </div>
-                </div>
-              </Link>
+                </HorizontalDragScroll>
+              </section>
             );
           })
         )}
