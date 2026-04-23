@@ -72,7 +72,13 @@ export function HomeDashboard() {
   return (
     <div className="space-y-6 pb-4 pt-1">
       <div>
-        <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--mb-ink)]">こんにちは、{displayName}さん</p>
+        <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--mb-ink)]">
+          こんにちは、
+          <span className="inline-block bg-gradient-to-t from-[var(--mb-forest)] to-[#84cc16] bg-clip-text text-transparent">
+            {displayName}
+          </span>
+          さん
+        </p>
         <p className="mt-1 text-[0.8125rem] font-medium text-[var(--mb-forest-light)]">マイボトル</p>
       </div>
 
