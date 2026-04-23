@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { bottleImageCandidates } from "@/lib/mybottle/bottle-images";
 import { useMasterData } from "@/components/mybottle/master-data-provider";
-import { getProductImageUrl } from "@/lib/supabase/storage";
+import { getProductImageObjectUrl, getProductImageUrl } from "@/lib/supabase/storage";
 
 type Props = {
   productId: string;
@@ -30,12 +30,18 @@ export function BottleProductImage({
   const { products } = useMasterData();
   const product = useMemo(() => products.find((item) => item.id === productId), [products, productId]);
   const storageImage = product?.imagePath ? getProductImageUrl(product.imagePath, 320) : null;
+  const storageObjectImage = product?.imagePath ? getProductImageObjectUrl(product.imagePath) : null;
   const paths = useMemo(() => bottleImageCandidates(productId), [productId]);
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState(false);
+  const [renderFailed, setRenderFailed] = useState(false);
 
   const emoji = type === "virtual" ? "🍺" : "🥃";
-  const src = failed && storageImage ? null : storageImage ?? paths[index];
+  const src = (() => {
+    if (storageImage && !renderFailed) return storageImage;
+    if (storageObjectImage && !failed) return storageObjectImage;
+    return paths[index] ?? null;
+  })();
 
   if (failed || !src) {
     return (
@@ -66,7 +72,11 @@ export function BottleProductImage({
         decoding="async"
         loading="lazy"
         onError={() => {
-          if (storageImage && !failed) {
+          if (storageImage && !renderFailed) {
+            setRenderFailed(true);
+            return;
+          }
+          if (storageObjectImage && !failed) {
             setFailed(true);
             return;
           }

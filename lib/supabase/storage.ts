@@ -24,3 +24,11 @@ export function getProductImageUrl(imagePath: string, width = 320): string {
   });
   return `${base}?${params.toString()}`;
 }
+
+/**
+ * render/image が環境依存で失敗するケース向けのフォールバックURL。
+ */
+export function getProductImageObjectUrl(imagePath: string): string {
+  const encodedPath = encodeStoragePath(imagePath);
+  return `${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PRODUCT_IMAGE_BUCKET}/${encodedPath}`;
+}

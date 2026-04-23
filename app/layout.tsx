@@ -58,6 +58,7 @@ export const metadata: Metadata = {
     apple: [{ url: "/images/favicon.png", type: "image/png" }],
   },
   manifest: "/manifest.webmanifest",
+  themeColor: "#ffffff",
   openGraph: {
     type: "website",
     locale: "ja_JP",
