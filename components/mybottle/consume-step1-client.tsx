@@ -63,7 +63,7 @@ export function ConsumeStep1Client({ initialKey = "", preferredStoreId = "" }: P
                 key={key}
                 type="button"
                 onClick={() => setSelectedKey(key)}
-                className={`group w-[8.9rem] shrink-0 snap-start overflow-hidden rounded-[0.95rem] border bg-[var(--mb-card)] text-left shadow-[var(--mb-shadow-card)] transition active:opacity-85 ${
+                className={`group mb-bottle-card-shell w-[8.9rem] shrink-0 snap-start overflow-hidden rounded-[0.95rem] border text-left transition active:opacity-85 ${
                   active
                     ? "border-[var(--mb-forest)]/45 ring-2 ring-[var(--mb-forest)]/20"
                     : "border-[var(--mb-ring)]"
@@ -81,7 +81,7 @@ export function ConsumeStep1Client({ initialKey = "", preferredStoreId = "" }: P
                     />
                   </div>
                 </div>
-                <div className="space-y-1 border-t border-[var(--mb-ring)] px-2.5 py-2">
+                <div className="mb-bottle-card-foot space-y-1 px-2.5 py-2">
                   <p className="line-clamp-1 text-[0.8rem] font-semibold tracking-[-0.01em] text-[var(--mb-ink)]">
                     {item.productName}
                   </p>

@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "leaflet/dist/leaflet.css";
 
 :root {
   /* Canvas: pure white + subtle green-gray surfaces (forest brand kept) */
@@ -21,6 +20,9 @@
   --mb-ring: rgba(30, 58, 47, 0.1);
   --mb-shadow-card: 0 1px 0 rgba(30, 58, 47, 0.05), 0 10px 40px rgba(30, 58, 47, 0.06);
   --mb-shell-blur: 20px;
+  /* 横スクロールのボトル商品カード: クリームの情報エリア */
+  --mb-bottle-card-cream: #f4f1ea;
+  --mb-bottle-card-shadow: 0 2px 3px rgba(30, 58, 47, 0.04), 0 10px 28px rgba(30, 58, 47, 0.08);
 }
 
 @theme inline {
@@ -116,7 +118,8 @@ canvas {
   left: 0;
   bottom: 0;
   height: 2px;
-  width: 100%;
+  width: max(calc(100% + 2.75rem), 11.5rem);
+  max-width: min(calc(100vw - 2.5rem), 22rem);
   border-radius: 9999px;
   background: linear-gradient(90deg, var(--mb-forest), #2d5a45);
   transform: scaleX(0);
@@ -138,9 +141,9 @@ canvas {
   }
 }
 
-/* ボトル展示: 壁＋テーブル天板（横スライドカード・ヒーロー等で共通） */
+/* ボトル展示: 初版3Dの縦グラデの「壁」を上下反転（上がやや濃いセージ→地平で明るい）、床タンはそのまま */
 .mb-bottle-stage {
-  --mb-stage-horizon: 74%;
+  --mb-stage-horizon: 68%;
   --mb-stage-min-h: 7.6rem;
   --mb-stage-py: 0.625rem;
   --mb-stage-px: 0.5rem;
@@ -152,8 +155,9 @@ canvas {
   justify-content: center;
   padding: var(--mb-stage-py) var(--mb-stage-px) var(--mb-stage-pb);
   isolation: isolate;
-  background-color: #b9a892;
+  background-color: #d2c1a5;
   background-image:
+    radial-gradient(ellipse 92% 65% at 50% 36%, rgba(255, 255, 255, 0.14) 0%, transparent 52%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='0.055'/%3E%3C/svg%3E"),
     repeating-linear-gradient(
       90deg,
@@ -165,14 +169,17 @@ canvas {
     ),
     linear-gradient(
       180deg,
-      #b4c4b9 0%,
-      #c4d1c8 38%,
-      #d2dcd4 var(--mb-stage-horizon),
-      #d4c7b4 var(--mb-stage-horizon),
-      #c9b9a3 88%,
-      #b9a892 100%
+      #8f9d8e 0%,
+      #8f9d8e 0.15%,
+      #a8b5a7 calc(var(--mb-stage-horizon) - 58%),
+      #c5d0c4 calc(var(--mb-stage-horizon) - 28%),
+      #e2e8e0 calc(var(--mb-stage-horizon) - 0.15%),
+      var(--mb-bottle-card-cream) var(--mb-stage-horizon),
+      #e6d8c0 var(--mb-stage-horizon),
+      #ddccb0 82%,
+      #d2c1a5 100%
     );
-  background-size: 96px 96px, 100% 100%, 100% 100%;
+  background-size: 100% 100%, 96px 96px, 100% 100%, 100% 100%;
 }
 
 .mb-bottle-stage::before {
@@ -182,16 +189,36 @@ canvas {
   right: 0;
   top: var(--mb-stage-horizon);
   height: 1px;
+  transform: translateY(-0.5px);
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(30, 58, 47, 0.14) 18%,
-    rgba(62, 48, 36, 0.16) 50%,
-    rgba(30, 58, 47, 0.14) 82%,
+    rgba(42, 48, 40, 0.22) 22%,
+    rgba(62, 52, 38, 0.28) 50%,
+    rgba(42, 48, 40, 0.22) 78%,
     transparent 100%
   );
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
   pointer-events: none;
   z-index: 0;
+}
+
+/* ホーム等の小さなボトルカード外枠（クリーム地＋やや強い浮き影） */
+.mb-bottle-card-shell {
+  background-color: var(--mb-bottle-card-cream);
+  box-shadow: var(--mb-bottle-card-shadow);
+}
+
+/* カード下部の情報ブロック（#f4f1ea 基調・ステージとの境だけやわらかく） */
+.mb-bottle-card-foot {
+  background: linear-gradient(
+    180deg,
+    #e8e5de 0%,
+    var(--mb-bottle-card-cream) 30%,
+    var(--mb-bottle-card-cream) 100%
+  );
+  border-top: 1px solid rgba(30, 58, 47, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .mb-bottle-stage__bottle {
@@ -306,37 +333,6 @@ canvas {
   }
 }
 
-.mb-map-pin {
-  width: 20px;
-  height: 20px;
-  border-radius: 9999px;
-  background: var(--mb-forest);
-  border: 2px solid #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-}
-
-.mb-map-pin.store {
-  width: 28px;
-  height: 28px;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  background: #e50922;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
-  position: relative;
-}
-
-.mb-map-pin.store::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 10px;
-  height: 10px;
-  border-radius: 9999px;
-  background: #ffffff;
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
 .mb-user-dot {
   width: 14px;
   height: 14px;
@@ -368,4 +364,91 @@ canvas {
     transform: scale(1);
     opacity: 0;
   }
+}
+
+/* ログイン直後のブートオーバーレイ（Next 風の暗背景＋微光） */
+.mb-post-login-boot-aurora {
+  position: absolute;
+  inset: -40%;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 120%, rgba(30, 58, 47, 0.85), transparent 55%),
+    radial-gradient(ellipse 60% 45% at 20% 30%, rgba(56, 189, 248, 0.12), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 85% 25%, rgba(125, 211, 252, 0.1), transparent 45%);
+  animation: mb-post-login-boot-aurora-shift 8s ease-in-out infinite;
+}
+
+@keyframes mb-post-login-boot-aurora-shift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -1%, 0) scale(1.03);
+  }
+}
+
+.mb-post-login-boot-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 45%, black, transparent);
+}
+
+.mb-post-login-boot-bar {
+  height: 3px;
+  width: min(12rem, 70vw);
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.mb-post-login-boot-bar-fill {
+  height: 100%;
+  width: 40%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--mb-forest), #84cc16, var(--mb-accent-dark));
+  animation: mb-post-login-boot-bar-slide 1.35s ease-in-out infinite;
+}
+
+@keyframes mb-post-login-boot-bar-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mb-post-login-boot-aurora,
+  .mb-post-login-boot-bar-fill {
+    animation: none;
+  }
+
+  .mb-post-login-boot-bar-fill {
+    transform: translateX(0);
+    width: 100%;
+    opacity: 0.85;
+  }
+}
+
+/*
+ * ログイン直後: ハイドレーション前の 1 フレームでもホームが見えないよう、
+ * サーバーが付与した body クラスで全面ベール（React オーバーレイ z-200 の下層）。
+ */
+body.mb-post-login-boot-lock {
+  overflow: hidden;
+}
+
+body.mb-post-login-boot-lock::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: #0a1210;
+  pointer-events: none;
 }

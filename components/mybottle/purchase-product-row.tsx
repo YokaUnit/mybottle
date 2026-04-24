@@ -13,7 +13,7 @@ export function PurchaseProductRow({ storeId, product }: Props) {
   return (
     <Link
       href={`/products/step-3?storeId=${storeId}&productId=${product.id}`}
-      className="group w-[8.9rem] shrink-0 snap-start select-none overflow-hidden rounded-[0.95rem] border border-[var(--mb-ring)] bg-[var(--mb-card)] shadow-[var(--mb-shadow-card)] transition active:opacity-85"
+      className="group mb-bottle-card-shell w-[8.9rem] shrink-0 snap-start select-none overflow-hidden rounded-[0.95rem] border border-[var(--mb-ring)] transition active:opacity-85"
       draggable={false}
     >
       <div className="mb-bottle-stage">
@@ -28,7 +28,7 @@ export function PurchaseProductRow({ storeId, product }: Props) {
           />
         </div>
       </div>
-      <div className="space-y-1 border-t border-[var(--mb-ring)] px-2.5 py-2">
+      <div className="mb-bottle-card-foot space-y-1 px-2.5 py-2">
         <p className="line-clamp-1 text-[0.8rem] font-semibold tracking-[-0.01em] text-[var(--mb-ink)]">
           {product.name}
         </p>

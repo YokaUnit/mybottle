@@ -76,7 +76,7 @@ export function BenefitsPageClient({ initialNews }: Props) {
                       <Link
                         key={`${item.storeId}-${item.productId}`}
                         href={`/bottle/${item.storeId}/${item.productId}`}
-                        className="w-[8.9rem] shrink-0 snap-start overflow-hidden rounded-[0.95rem] border border-[var(--mb-ring)] bg-[var(--mb-card)]/95 shadow-[var(--mb-shadow-card)]"
+                        className="mb-bottle-card-shell w-[8.9rem] shrink-0 snap-start overflow-hidden rounded-[0.95rem] border border-[var(--mb-ring)]"
                       >
                         <div className="mb-bottle-stage">
                           <div className="mb-bottle-stage__bottle">
@@ -89,7 +89,7 @@ export function BenefitsPageClient({ initialNews }: Props) {
                             />
                           </div>
                         </div>
-                        <div className="space-y-1 border-t border-[var(--mb-ring)] px-2.5 py-2">
+                        <div className="mb-bottle-card-foot space-y-1 px-2.5 py-2">
                           <p className="line-clamp-1 text-[0.8rem] font-semibold tracking-[-0.01em] text-[var(--mb-ink)]">
                             {item.productName}
                           </p>

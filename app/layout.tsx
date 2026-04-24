@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/app/providers";
+import { POST_LOGIN_BOOT_COOKIE } from "@/lib/post-login-boot";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -85,11 +87,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const postLoginBootLock = cookieStore.get(POST_LOGIN_BOOT_COOKIE)?.value === "1";
+
   return (
     <html
       lang="ja"
@@ -98,7 +103,9 @@ export default function RootLayout({
       <head>
         <link rel="mask-icon" href="/images/favicon.png" color="#1e3a2f" />
       </head>
-      <body className="min-h-full bg-[var(--mb-bg)] text-[var(--mb-ink)]">
+      <body
+        className={`min-h-full bg-[var(--mb-bg)] text-[var(--mb-ink)]${postLoginBootLock ? " mb-post-login-boot-lock" : ""}`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

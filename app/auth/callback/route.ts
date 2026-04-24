@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { POST_LOGIN_BOOT_COOKIE } from "@/lib/post-login-boot";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -33,5 +34,16 @@ export async function GET(request: Request) {
     });
   }
 
-  return NextResponse.redirect(new URL(safeNext, url.origin));
+  const redirectUrl = new URL(safeNext, url.origin);
+  const res = NextResponse.redirect(redirectUrl);
+  /** 初回 HTML からホームが一瞬見えないようサーバー側でロックする（クライアントで解除） */
+  res.cookies.set({
+    name: POST_LOGIN_BOOT_COOKIE,
+    value: "1",
+    path: "/",
+    maxAge: 120,
+    sameSite: "lax",
+    httpOnly: false,
+  });
+  return res;
 }

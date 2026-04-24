@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   consumeAction,
   getStockStateAction,
@@ -10,6 +19,12 @@ import {
 } from "@/app/(main)/actions/stock-actions";
 import { ActivityLog, PaymentMethod, StockItem } from "@/lib/mybottle/types";
 import { useMasterData } from "@/components/mybottle/master-data-provider";
+import { PostLoginBootOverlay } from "@/components/mybottle/post-login-boot-overlay";
+import {
+  POST_LOGIN_BOOT_MIN_MS,
+  clearPostLoginBootCookie,
+  hasPostLoginBootCookie,
+} from "@/lib/post-login-boot";
 
 type StockContextValue = {
   stock: StockItem[];
@@ -50,6 +65,8 @@ const emptyState: StockState = { stock: [], logs: [] };
 export function StockProvider({ children }: { children: React.ReactNode }) {
   const { products } = useMasterData();
   const [state, setState] = useState<StockState>(emptyState);
+  const [postLoginBootOpen, setPostLoginBootOpen] = useState(false);
+  const postLoginBootLockRef = useRef(false);
 
   const stock = state.stock;
   const logs = state.logs;
@@ -59,10 +76,58 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
     setState(next);
   }, []);
 
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    const fresh = new URLSearchParams(window.location.search).get("fresh") === "1";
+    const cookie = hasPostLoginBootCookie();
+    postLoginBootLockRef.current = fresh || cookie;
+    if (postLoginBootLockRef.current) {
+      setPostLoginBootOpen(true);
+    }
+  }, []);
+
+  /** サーバー付与のベールを外し、React オーバーレイに切り替え（同フレーム内でチラつき防止） */
   useEffect(() => {
-    queueMicrotask(() => {
-      void refreshState();
+    if (!postLoginBootOpen) return;
+    const id = window.requestAnimationFrame(() => {
+      document.body.classList.remove("mb-post-login-boot-lock");
     });
+    return () => window.cancelAnimationFrame(id);
+  }, [postLoginBootOpen]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      const boot = postLoginBootLockRef.current;
+      const t0 = Date.now();
+      try {
+        await refreshState();
+      } finally {
+        if (cancelled) return;
+        if (boot) {
+          const elapsed = Date.now() - t0;
+          await new Promise<void>((resolve) => {
+            window.setTimeout(resolve, Math.max(0, POST_LOGIN_BOOT_MIN_MS - elapsed));
+          });
+        }
+        if (typeof window !== "undefined") {
+          const u = new URL(window.location.href);
+          if (u.searchParams.has("fresh")) {
+            u.searchParams.delete("fresh");
+            window.history.replaceState({}, "", `${u.pathname}${u.search}${u.hash}`);
+          }
+          clearPostLoginBootCookie();
+          document.body.classList.remove("mb-post-login-boot-lock");
+        }
+        if (!cancelled) {
+          setPostLoginBootOpen(false);
+        }
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
   }, [refreshState]);
 
   const purchase = useCallback(
@@ -231,7 +296,12 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
     ],
   );
 
-  return <StockContext.Provider value={value}>{children}</StockContext.Provider>;
+  return (
+    <StockContext.Provider value={value}>
+      {children}
+      <PostLoginBootOverlay open={postLoginBootOpen} />
+    </StockContext.Provider>
+  );
 }
 
 export function useStock() {
