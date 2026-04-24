@@ -38,13 +38,18 @@ export function ConsumeStep4Client({ storeId, productId, initialUnits = 1 }: Pro
   return (
     <section className="mb-surface space-y-5 p-5">
       <div className="flex gap-4">
-        <BottleProductImage
-          key={item.productId}
-          productId={item.productId}
-          type={item.type}
-          frameClassName="h-24 w-24 shrink-0"
-          fallbackEmojiClassName="text-4xl"
-        />
+        <div className="mb-bottle-stage mb-bottle-stage--row">
+          <div className="mb-bottle-stage__bottle">
+            <BottleProductImage
+              key={item.productId}
+              productId={item.productId}
+              type={item.type}
+              frameClassName="h-24 w-24 shrink-0"
+              fallbackEmojiClassName="text-4xl"
+              plain
+            />
+          </div>
+        </div>
         <div className="min-w-0 flex-1">
           <p className="text-lg font-semibold tracking-[-0.02em] text-[var(--mb-ink)]">{item.productName}</p>
           <p className="mt-2 text-sm font-medium leading-relaxed text-[var(--mb-forest-light)]">

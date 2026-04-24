@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { AnimatedLinearGauge } from "@/components/mybottle/animated-linear-gauge";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
 import { HorizontalDragScroll } from "@/components/mybottle/horizontal-drag-scroll";
@@ -108,12 +108,21 @@ export function HomeDashboard() {
             </Link>
           </div>
         ) : (
-          stockByStore.map(([storeId, items]) => {
+          stockByStore.map(([storeId, items], storeIndex) => {
             const storeName = stores.find((s) => s.id === storeId)?.name ?? "加盟店";
             return (
               <section key={storeId} className="space-y-2">
                 <h2 className="text-[0.82rem] font-semibold uppercase tracking-[0.12em] text-[var(--mb-forest-light)]">
-                  {storeName}
+                  <span
+                    className="mb-store-name-underline"
+                    style={
+                      {
+                        "--mb-underline-delay": `${Math.min(storeIndex, 6) * 90}ms`,
+                      } as CSSProperties
+                    }
+                  >
+                    {storeName}
+                  </span>
                 </h2>
                 <HorizontalDragScroll>
                   <div className="flex w-max gap-2.5">
@@ -127,15 +136,17 @@ export function HomeDashboard() {
                           href={`/bottle/${item.storeId}/${item.productId}`}
                           className="group w-[8.9rem] shrink-0 snap-start select-none overflow-hidden rounded-[0.95rem] border border-[var(--mb-ring)] bg-[var(--mb-card)] shadow-[var(--mb-shadow-card)] transition active:opacity-85"
                         >
-                          <div className="flex min-h-[7.6rem] items-end justify-center bg-[var(--mb-muted)] px-2 pb-1.5 pt-2.5">
-                            <BottleProductImage
-                              key={`${item.storeId}-${item.productId}`}
-                              productId={item.productId}
-                              type={item.type}
-                              frameClassName="h-[5.55rem] w-[5.55rem]"
-                              fallbackEmojiClassName="text-2xl"
-                              plain
-                            />
+                          <div className="mb-bottle-stage">
+                            <div className="mb-bottle-stage__bottle">
+                              <BottleProductImage
+                                key={`${item.storeId}-${item.productId}`}
+                                productId={item.productId}
+                                type={item.type}
+                                frameClassName="h-[5.55rem] w-[5.55rem]"
+                                fallbackEmojiClassName="text-2xl"
+                                plain
+                              />
+                            </div>
                           </div>
                           <div className="space-y-1 border-t border-[var(--mb-ring)] px-2.5 py-2">
                             <p className="line-clamp-1 text-[0.8rem] font-semibold tracking-[-0.01em] text-[var(--mb-ink)]">

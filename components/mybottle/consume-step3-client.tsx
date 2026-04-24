@@ -52,14 +52,17 @@ export function ConsumeStep3Client({ storeId, productId, units }: Props) {
   if (done) {
     return (
       <section className="mb-surface border-emerald-200/80 bg-emerald-50/90 p-8 text-center">
-        <div className="mx-auto flex w-fit justify-center">
-          <BottleProductImage
-            key={product.id}
-            productId={product.id}
-            type={product.type}
-            frameClassName="h-20 w-20"
-            fallbackEmojiClassName="text-3xl"
-          />
+        <div className="mb-bottle-stage mb-bottle-stage--square">
+          <div className="mb-bottle-stage__bottle flex justify-center">
+            <BottleProductImage
+              key={product.id}
+              productId={product.id}
+              type={product.type}
+              frameClassName="h-20 w-20"
+              fallbackEmojiClassName="text-3xl"
+              plain
+            />
+          </div>
         </div>
         <p className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-emerald-800">使用完了</p>
         <p className="mt-2 text-base font-medium text-[var(--mb-forest-light)]">
@@ -79,12 +82,17 @@ export function ConsumeStep3Client({ storeId, productId, units }: Props) {
   return (
     <section className="mb-surface space-y-4 p-5">
       <div className="flex items-center gap-3 rounded-[0.85rem] border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-3">
-        <BottleProductImage
-          productId={product.id}
-          type={product.type}
-          frameClassName="h-16 w-16 shrink-0"
-          fallbackEmojiClassName="text-2xl"
-        />
+        <div className="mb-bottle-stage mb-bottle-stage--row-compact">
+          <div className="mb-bottle-stage__bottle">
+            <BottleProductImage
+              productId={product.id}
+              type={product.type}
+              frameClassName="h-16 w-16 shrink-0"
+              fallbackEmojiClassName="text-2xl"
+              plain
+            />
+          </div>
+        </div>
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold tracking-[-0.02em] text-[var(--mb-ink)]">{product.name}</p>
           <p className="text-xs font-medium text-[var(--mb-forest-light)]">{store.name}</p>

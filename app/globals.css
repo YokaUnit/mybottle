@@ -101,6 +101,169 @@ canvas {
   color: var(--mb-forest-light);
 }
 
+/* ホーム等: 店舗名の下線が左から伸びる */
+.mb-store-name-underline {
+  position: relative;
+  display: inline-block;
+  width: max-content;
+  max-width: 100%;
+  padding-bottom: 0.2rem;
+}
+
+.mb-store-name-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--mb-forest), #2d5a45);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: mb-store-underline-draw 0.7s cubic-bezier(0.2, 0.85, 0.2, 1) forwards;
+  animation-delay: var(--mb-underline-delay, 0ms);
+}
+
+@keyframes mb-store-underline-draw {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mb-store-name-underline::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
+/* ボトル展示: 壁＋テーブル天板（横スライドカード・ヒーロー等で共通） */
+.mb-bottle-stage {
+  --mb-stage-horizon: 74%;
+  --mb-stage-min-h: 7.6rem;
+  --mb-stage-py: 0.625rem;
+  --mb-stage-px: 0.5rem;
+  --mb-stage-pb: 0.4rem;
+  position: relative;
+  display: flex;
+  min-height: var(--mb-stage-min-h);
+  align-items: flex-end;
+  justify-content: center;
+  padding: var(--mb-stage-py) var(--mb-stage-px) var(--mb-stage-pb);
+  isolation: isolate;
+  background-color: #b9a892;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='0.055'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(
+      90deg,
+      rgba(74, 58, 42, 0.028) 0px,
+      transparent 1px,
+      transparent 14px,
+      rgba(255, 255, 255, 0.05) 15px,
+      transparent 16px
+    ),
+    linear-gradient(
+      180deg,
+      #b4c4b9 0%,
+      #c4d1c8 38%,
+      #d2dcd4 var(--mb-stage-horizon),
+      #d4c7b4 var(--mb-stage-horizon),
+      #c9b9a3 88%,
+      #b9a892 100%
+    );
+  background-size: 96px 96px, 100% 100%, 100% 100%;
+}
+
+.mb-bottle-stage::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--mb-stage-horizon);
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(30, 58, 47, 0.14) 18%,
+    rgba(62, 48, 36, 0.16) 50%,
+    rgba(30, 58, 47, 0.14) 82%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.mb-bottle-stage__bottle {
+  position: relative;
+  z-index: 1;
+}
+
+/* 購入確認・使用フロー: 横並びサムネ用 */
+.mb-bottle-stage--row {
+  --mb-stage-min-h: 6.5rem;
+  --mb-stage-py: 0.45rem;
+  --mb-stage-px: 0.4rem;
+  --mb-stage-pb: 0.35rem;
+  width: 7.5rem;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.mb-bottle-stage--row-compact {
+  --mb-stage-min-h: 6rem;
+  --mb-stage-py: 0.4rem;
+  --mb-stage-px: 0.35rem;
+  --mb-stage-pb: 0.3rem;
+  width: 6.5rem;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* ボトル詳細ヒーロー */
+.mb-bottle-stage--hero {
+  --mb-stage-min-h: 13rem;
+  --mb-stage-py: 0.85rem;
+  --mb-stage-px: 1rem;
+  --mb-stage-pb: 0.55rem;
+  width: 100%;
+  max-width: 17.5rem;
+  border-radius: 0.95rem;
+  overflow: hidden;
+}
+
+/* 完了画面など: 中央のやや小さい台 */
+.mb-bottle-stage--square {
+  --mb-stage-min-h: 9rem;
+  --mb-stage-py: 0.65rem;
+  --mb-stage-px: 0.65rem;
+  --mb-stage-pb: 0.45rem;
+  width: 10rem;
+  max-width: 100%;
+  margin-inline: auto;
+  border-radius: 0.95rem;
+  overflow: hidden;
+}
+
+/* 履歴リスト等: 正方形サムネ（縦長ストリップにならないよう壁を短く） */
+.mb-bottle-stage--thumb {
+  --mb-stage-horizon: 78%;
+  --mb-stage-min-h: 3.75rem;
+  --mb-stage-py: 0.18rem;
+  --mb-stage-px: 0.18rem;
+  --mb-stage-pb: 0.14rem;
+  box-sizing: border-box;
+  width: 3.75rem;
+  min-width: 3.75rem;
+  max-width: 3.75rem;
+  min-height: 3.75rem;
+  max-height: 3.75rem;
+  flex-shrink: 0;
+  border-radius: 0.65rem;
+  overflow: hidden;
+  align-self: center;
+}
+
 @keyframes mb-sheen {
   0% {
     transform: translateX(-130%);

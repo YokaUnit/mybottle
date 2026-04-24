@@ -73,13 +73,18 @@ export function ProductStep4Client({ storeId, productId, quantity }: Props) {
   return (
     <section className="mb-surface space-y-5 p-5">
       <div className="flex gap-4 rounded-[0.85rem] border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-4">
-        <BottleProductImage
-          key={product.id}
-          productId={product.id}
-          type={product.type}
-          frameClassName="h-20 w-20 shrink-0"
-          fallbackEmojiClassName="text-3xl"
-        />
+        <div className="mb-bottle-stage mb-bottle-stage--row-compact">
+          <div className="mb-bottle-stage__bottle">
+            <BottleProductImage
+              key={product.id}
+              productId={product.id}
+              type={product.type}
+              frameClassName="h-20 w-20 shrink-0"
+              fallbackEmojiClassName="text-3xl"
+              plain
+            />
+          </div>
+        </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium text-[var(--mb-forest-light)]">対象店舗: {store.name}</p>
           <p className="mt-1 text-lg font-semibold tracking-[-0.02em] text-[var(--mb-ink)]">{product.name}</p>

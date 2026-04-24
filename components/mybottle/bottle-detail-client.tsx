@@ -63,13 +63,18 @@ export function BottleDetailClient({ storeId, productId }: Props) {
     <>
       <div className="space-y-4 pb-4">
         <div className="mb-surface flex flex-col items-center px-5 py-8">
-          <BottleProductImage
-            key={item.productId}
-            productId={item.productId}
-            type={item.type}
-            frameClassName="h-40 w-32"
-            fallbackEmojiClassName="text-6xl"
-          />
+          <div className="mb-bottle-stage mb-bottle-stage--hero">
+            <div className="mb-bottle-stage__bottle flex justify-center">
+              <BottleProductImage
+                key={item.productId}
+                productId={item.productId}
+                type={item.type}
+                frameClassName="h-40 w-32"
+                fallbackEmojiClassName="text-6xl"
+                plain
+              />
+            </div>
+          </div>
           <h1 className="mt-5 text-center text-[1.35rem] font-semibold tracking-[-0.03em] text-[var(--mb-ink)]">
             {item.productName}
           </h1>
