@@ -104,7 +104,7 @@ export function HomeDashboard() {
               本
             </span>
           </div>
-          <div className="mt-3.5 h-px w-full bg-white/35" aria-hidden />
+          <div className="mt-3.5 h-px w-[11rem] max-w-full bg-white/35 sm:w-full" aria-hidden />
           <p className="mt-3 text-[0.8125rem] font-medium text-white/95 [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
             残量合計 <span className="font-semibold tabular-nums text-white">{totalUnits}</span> 杯
           </p>

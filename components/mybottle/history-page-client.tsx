@@ -92,36 +92,6 @@ function groupByDay(logs: ActivityLog[]): { dayKey: string; heading: string; ite
   return groups;
 }
 
-const actionBadge: Record<
-  ActionType,
-  { label: string; className: string }
-> = {
-  purchase: {
-    label: "購入",
-    className: "bg-emerald-600/12 text-emerald-900 ring-1 ring-emerald-700/15",
-  },
-  consume: {
-    label: "来店",
-    className: "bg-[var(--mb-forest)]/12 text-[var(--mb-forest)] ring-1 ring-[var(--mb-forest)]/18",
-  },
-  gift: {
-    label: "贈答",
-    className: "bg-rose-500/12 text-rose-900 ring-1 ring-rose-600/18",
-  },
-  transfer: {
-    label: "店舗移動",
-    className: "bg-violet-500/12 text-violet-900 ring-1 ring-violet-600/18",
-  },
-  remove: {
-    label: "削除",
-    className: "bg-zinc-500/14 text-zinc-800 ring-1 ring-zinc-600/18",
-  },
-  update: {
-    label: "残量更新",
-    className: "bg-sky-500/14 text-sky-950 ring-1 ring-sky-600/22",
-  },
-};
-
 export function HistoryPageClient() {
   const { logs } = useStock();
   const { products, stores } = useMasterData();
@@ -261,16 +231,17 @@ export function HistoryPageClient() {
                 >
                   {group.heading}
                 </h2>
-                <ul className="space-y-2">
+                <ul className="divide-y divide-[var(--mb-ring)] border-y border-[var(--mb-ring)]">
                   {group.items.map((log) => {
-                    const badge = actionBadge[log.action];
                     const storeName = stores.find((s) => s.id === log.storeId)?.name ?? "加盟店";
                     const type = products.find((p) => p.id === log.productId)?.type ?? "physical";
+                    const isPlus = log.action === "purchase";
+                    const signedUnits = isPlus ? `+${log.units}` : `-${log.units}`;
                     return (
                       <li key={log.id}>
                         <Link
                           href={`/bottle/${log.storeId}/${log.productId}`}
-                          className="mb-surface group grid grid-cols-[3.75rem_1fr_auto] items-center gap-x-3 gap-y-0 rounded-[var(--mb-radius-card)] p-3 transition hover:ring-1 hover:ring-[var(--mb-forest)]/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mb-forest)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mb-bg)] active:opacity-92 sm:p-3.5"
+                          className="group grid grid-cols-[3.75rem_1fr_auto] items-center gap-x-3 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mb-forest)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mb-bg)] active:opacity-92"
                         >
                           <div className="self-center justify-self-start">
                             <div className="mb-bottle-stage mb-bottle-stage--thumb">
@@ -278,43 +249,41 @@ export function HistoryPageClient() {
                                 <BottleProductImage
                                   productId={log.productId}
                                   type={type}
-                                  frameClassName="h-10 w-10 sm:h-[2.65rem] sm:w-[2.65rem]"
-                                  fallbackEmojiClassName="text-base sm:text-lg"
+                                  frameClassName="h-10 w-10 sm:h-10 sm:w-10"
+                                  fallbackEmojiClassName="text-lg sm:text-xl"
                                   plain
                                 />
                               </div>
                             </div>
                           </div>
                           <div className="min-w-0 py-0.5">
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                              <span
-                                className={`inline-flex rounded-full px-2 py-0.5 text-[0.625rem] font-semibold tracking-wide ${badge.className}`}
-                              >
-                                {badge.label}
-                              </span>
-                              <span className="text-[0.6875rem] font-medium tabular-nums text-[var(--mb-forest-light)]">
-                                {relativePastJa(log.createdAt)}
-                                <span className="mx-1 text-[var(--mb-muted-strong)]" aria-hidden>
-                                  ·
-                                </span>
-                                <time dateTime={log.createdAt}>{formatTimeTokyo(log.createdAt)}</time>
-                              </span>
-                            </div>
-                            <p className="mt-1 text-[0.9375rem] font-semibold leading-snug tracking-[-0.02em] text-[var(--mb-ink)] sm:text-base">
-                              {log.productName}
-                            </p>
-                            <p className="mt-0.5 text-[0.6875rem] font-medium text-[var(--mb-forest-light)]">
+                            <p className="line-clamp-1 text-[0.625rem] font-semibold uppercase tracking-[0.04em] text-[var(--mb-forest-light)]">
                               {storeName}
                             </p>
-                            <p className="mt-1 text-xs font-medium leading-relaxed text-[var(--mb-forest-light)] sm:text-sm">
-                              {log.detail}
+                            <p className="mt-0.5 line-clamp-1 text-[0.8rem] font-semibold leading-snug tracking-[-0.01em] text-[var(--mb-ink)] sm:text-[0.9rem]">
+                              {log.productName}
+                            </p>
+                            <p className="mt-0.5 text-[0.66rem] font-medium tabular-nums text-[var(--mb-forest-light)]">
+                              <time dateTime={log.createdAt}>
+                                {tokyoCalendarDayKey(log.createdAt).replaceAll("-", "/")} {formatTimeTokyo(log.createdAt)}
+                              </time>
                             </p>
                           </div>
-                          <ChevronRight
-                            className="h-5 w-5 shrink-0 self-center text-[var(--mb-muted-strong)] transition group-hover:text-[var(--mb-forest-light)]"
-                            strokeWidth={2}
-                            aria-hidden
-                          />
+                          <div className="flex items-center gap-1.5 pl-1">
+                            <p
+                              className={`text-[0.72rem] font-semibold tabular-nums sm:text-xs ${
+                                isPlus ? "text-sky-600" : "text-rose-600"
+                              }`}
+                            >
+                              {signedUnits}
+                              {log.unitLabel}
+                            </p>
+                            <ChevronRight
+                              className="h-4 w-4 shrink-0 self-center text-[var(--mb-muted-strong)] transition group-hover:text-[var(--mb-forest-light)]"
+                              strokeWidth={2}
+                              aria-hidden
+                            />
+                          </div>
                         </Link>
                       </li>
                     );
