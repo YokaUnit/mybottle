@@ -11,10 +11,12 @@ type Props = {
 export function MobileStepHeader({ title, step, total = 4 }: Props) {
   return (
     <header className="mb-surface space-y-4 p-5">
-      <p className="mb-label-caps">
+      <p className="text-[0.6875rem] font-extrabold uppercase tracking-[0.14em] text-[var(--mb-teal-dark)]">
         Step {step} / {total}
       </p>
-      <h1 className="text-[1.35rem] font-semibold leading-snug tracking-[-0.03em] text-[var(--mb-ink)]">{title}</h1>
+      <h1 className="text-[1.35rem] font-extrabold leading-snug tracking-[-0.03em] text-[var(--mb-ink)]">
+        {title}
+      </h1>
 
       <div className="flex items-center" aria-label={`ステップ ${step} / ${total}`}>
         {Array.from({ length: total }).map((_, index) => {
@@ -24,19 +26,19 @@ export function MobileStepHeader({ title, step, total = 4 }: Props) {
           return (
             <div key={index} className="flex min-w-0 flex-1 items-center">
               <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition ${
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-extrabold transition ${
                   done
-                    ? "border-[var(--mb-forest)] bg-[var(--mb-forest)] text-white"
+                    ? "border-[var(--mb-teal)] bg-[var(--mb-teal)] text-white"
                     : current
-                      ? "border-[var(--mb-accent-dark)]/50 bg-[var(--mb-accent)]/20 text-[var(--mb-forest)]"
-                      : "border-[var(--mb-ring)] bg-[var(--mb-muted)] text-[var(--mb-forest-light)]"
+                      ? "border-[var(--mb-yellow-dark)] bg-[var(--mb-yellow)]/40 text-[#713f12]"
+                      : "border-[var(--mb-muted-strong)] bg-[var(--mb-muted)] text-[var(--mb-forest-light)]"
                 }`}
               >
-                {done ? <Check className="h-3.5 w-3.5" strokeWidth={2.25} aria-hidden /> : n}
+                {done ? <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden /> : n}
               </span>
               {index < total - 1 ? (
                 <span
-                  className={`mx-1.5 h-0.5 min-w-[6px] flex-1 rounded-full ${index + 1 < step ? "bg-[var(--mb-forest)]" : "bg-[var(--mb-muted-strong)]"}`}
+                  className={`mx-1.5 h-1 min-w-[6px] flex-1 rounded-full ${index + 1 < step ? "bg-[var(--mb-teal)]" : "bg-[var(--mb-muted-strong)]"}`}
                   aria-hidden
                 />
               ) : null}

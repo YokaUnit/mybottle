@@ -1,7 +1,23 @@
 import Link from "next/link";
-import { ChevronRight, UserRound } from "lucide-react";
+import {
+  Beer,
+  ChevronRight,
+  Gift,
+  Heart,
+  History,
+  Settings,
+  UserRound,
+} from "lucide-react";
 import { LogoutButton } from "@/components/mybottle/logout-button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+const menuItems = [
+  { href: "/bottles", label: "ボトル一覧", Icon: Beer },
+  { href: "/history", label: "利用履歴", Icon: History },
+  { href: "/benefits", label: "特典・クーポン", Icon: Gift },
+  { href: "/favorites", label: "お気に入り店舗", Icon: Heart },
+  { href: "/mypage/edit", label: "設定", Icon: Settings },
+] as const;
 
 export default async function MyPage() {
   const supabase = await createSupabaseServerClient();
@@ -19,7 +35,7 @@ export default async function MyPage() {
 
   const displayName = profile?.display_name ?? user?.user_metadata?.name ?? "未設定";
   const email = profile?.email ?? user?.email ?? "メール未設定";
-  const phone = profile?.phone ?? user?.phone ?? "";
+  const handle = email.includes("@") ? `@${email.split("@")[0]}` : "@user";
   const role = profile?.role === "admin" || profile?.role === "staff" ? profile.role : "user";
   const canUseDashboard = role === "staff" || role === "admin";
   const isAdmin = role === "admin";
@@ -28,53 +44,54 @@ export default async function MyPage() {
     <main className="space-y-5 pb-4 pt-2">
       <h1 className="mb-screen-title">マイページ</h1>
 
-      <section className="mb-surface flex items-center gap-4 p-5">
+      <section className="mb-pop-card mb-pop-card--teal flex items-center gap-4 rounded-[1.25rem] p-5">
         {profile?.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={profile.avatar_url}
             alt="プロフィール画像"
-            className="h-16 w-16 rounded-full object-cover ring-1 ring-[var(--mb-ring)]"
+            className="h-16 w-16 rounded-full object-cover ring-2 ring-white/40"
           />
         ) : (
-          <div className="grid h-16 w-16 place-items-center rounded-full bg-[var(--mb-muted)] text-[var(--mb-forest)] ring-1 ring-[var(--mb-ring)]">
-            <UserRound className="h-8 w-8" strokeWidth={1.75} aria-hidden />
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-white/20 text-white ring-2 ring-white/40">
+            <UserRound className="h-8 w-8" strokeWidth={2} aria-hidden />
           </div>
         )}
         <div>
-          <p className="text-lg font-semibold tracking-[-0.02em] text-[var(--mb-ink)]">{displayName}</p>
-          <p className="text-sm font-medium text-[var(--mb-forest-light)]">{email}</p>
-          {phone ? <p className="text-xs font-medium text-[var(--mb-forest-light)]">{phone}</p> : null}
-          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--mb-accent-dark)]">{role}</p>
+          <p className="text-lg font-extrabold text-white">{displayName}</p>
+          <p className="text-sm font-bold text-white/80">{handle}</p>
         </div>
       </section>
 
       <nav className="mb-surface overflow-hidden">
-        {[
-          { href: user ? "/mypage/edit" : "/login", label: "プロフィール編集" },
-          { href: "/mypage/help", label: "お問い合わせ" },
-          { href: "/mypage/terms", label: "利用規約" },
-          { href: "/mypage/privacy", label: "プライバシーポリシー" },
-        ].map((row) => (
-          <Link
-            key={row.label}
-            href={row.href}
-            className="flex items-center justify-between border-b border-[var(--mb-muted-strong)] px-5 py-4 text-sm font-medium text-[var(--mb-ink)] last:border-0"
-          >
-            {row.label}
-            <ChevronRight className="h-4 w-4 shrink-0 text-[var(--mb-forest-light)]" strokeWidth={2} aria-hidden />
-          </Link>
-        ))}
+        {menuItems.map((row) => {
+          const Icon = row.Icon;
+          return (
+            <Link
+              key={row.label}
+              href={user ? row.href : "/login"}
+              className="flex items-center justify-between border-b border-[var(--mb-muted-strong)] px-5 py-4 transition active:bg-[var(--mb-muted)]/60"
+            >
+              <span className="flex items-center gap-3 text-sm font-extrabold text-[var(--mb-ink)]">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--mb-teal)]/12 text-[var(--mb-teal-dark)]">
+                  <Icon className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+                </span>
+                {row.label}
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-[var(--mb-forest-light)]" strokeWidth={2.5} aria-hidden />
+            </Link>
+          );
+        })}
         <LogoutButton />
       </nav>
 
       {canUseDashboard ? (
-        <Link href="/dashboard" className="block text-center text-xs font-medium text-[var(--mb-forest-light)]">
+        <Link href="/dashboard" className="block text-center text-xs font-bold text-[var(--mb-forest-light)]">
           店舗向けダッシュボード（運営）
         </Link>
       ) : null}
       {isAdmin ? (
-        <Link href="/admin" className="block text-center text-xs font-semibold text-[var(--mb-accent-dark)]">
+        <Link href="/admin" className="block text-center text-xs font-extrabold text-[var(--mb-teal-dark)]">
           管理者ページへ
         </Link>
       ) : null}

@@ -1,4 +1,4 @@
-import { MobileStepHeader } from "@/components/mybottle/mobile-step-header";
+import { ConsumeFlowHeader } from "@/components/mybottle/consume-flow-header";
 import { ConsumeStep1Client } from "@/components/mybottle/consume-step1-client";
 
 type Props = {
@@ -12,8 +12,14 @@ export default async function ConsumeStep1Page({ searchParams }: Props) {
   const preferredStoreId = params.storeId ?? "";
 
   return (
-    <main className="space-y-4">
-      <MobileStepHeader title="使用するボトルを選択" step={1} />
+    <main className="space-y-1">
+      <ConsumeFlowHeader
+        step={1}
+        title="店舗とボトルを選ぶ"
+        subtitle="来店したお店を検索して、使うボトルを選んでください"
+        backHref="/"
+        backLabel="ホーム"
+      />
       <ConsumeStep1Client initialKey={initialKey} preferredStoreId={preferredStoreId} />
     </main>
   );

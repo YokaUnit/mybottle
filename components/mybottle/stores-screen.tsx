@@ -3,23 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Heart, MapPin, Navigation, Search } from "lucide-react";
+import { ChevronDown, Heart, MapPin, Navigation, Search, Star } from "lucide-react";
 import { Store } from "@/lib/mybottle/types";
 import type { StoreUiMeta } from "@/lib/supabase/mybottle";
-import { HorizontalDragScroll } from "@/components/mybottle/horizontal-drag-scroll";
 import { useMasterData } from "@/components/mybottle/master-data-provider";
 
 const FAV_KEY = "mb_store_fav_demo";
 
 type StoreCategory = "all" | "bar" | "stand" | "restaurant" | "cafe";
 
-const CHIPS: { id: StoreCategory; label: string }[] = [
-  { id: "all", label: "すべて" },
-  { id: "bar", label: "バー" },
-  { id: "stand", label: "スタンド" },
-  { id: "restaurant", label: "レストラン" },
-  { id: "cafe", label: "カフェ" },
-];
+const AREAS = ["すべて", "茅ヶ崎", "藤沢", "平塚", "湘南"] as const;
 
 function distanceKm(fromLat: number, fromLng: number, toLat: number, toLng: number) {
   const toRad = (deg: number) => (deg * Math.PI) / 180;
@@ -62,10 +55,15 @@ function genreLabel(store: Store, ui: StoreUiMeta | undefined) {
   return "店舗";
 }
 
+function mockRating(storeId: string) {
+  return 4.5 + (storeId.charCodeAt(0) % 5) / 10;
+}
+
 export function StoresScreen() {
   const { stores, storeUiById } = useMasterData();
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<StoreCategory>("all");
+  const [areaFilter, setAreaFilter] = useState<(typeof AREAS)[number]>("すべて");
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [locErr, setLocErr] = useState("");
   const [locLoading, setLocLoading] = useState(false);
@@ -99,34 +97,32 @@ export function StoresScreen() {
     [persistFav],
   );
 
-  const requestLocation = useCallback(
-    (opts?: { silent?: boolean }) => {
-      if (!navigator.geolocation) {
-        if (!opts?.silent) setLocErr("位置情報が使えません");
-        return;
-      }
-      setLocLoading(true);
-      setLocErr("");
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setLocLoading(false);
-        },
-        () => {
-          setLocLoading(false);
-          if (!opts?.silent) setLocErr("位置情報の許可が必要です");
-        },
-        { timeout: 12000 },
-      );
-    },
-    [],
-  );
+  const requestLocation = useCallback((opts?: { silent?: boolean }) => {
+    if (!navigator.geolocation) {
+      if (!opts?.silent) setLocErr("位置情報が使えません");
+      return;
+    }
+    setLocLoading(true);
+    setLocErr("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocLoading(false);
+      },
+      () => {
+        setLocLoading(false);
+        if (!opts?.silent) setLocErr("位置情報の許可が必要です");
+      },
+      { timeout: 12000 },
+    );
+  }, []);
 
   const filtered = useMemo(() => {
     const qq = q.trim().toLowerCase();
     return stores.filter((s) => {
       const ui = storeUiById[s.id];
       if (!matchesCategory(s, ui, category)) return false;
+      if (areaFilter !== "すべて" && !s.area.includes(areaFilter)) return false;
       if (!qq) return true;
       return (
         s.name.toLowerCase().includes(qq) ||
@@ -134,7 +130,7 @@ export function StoresScreen() {
         haystack(s, ui).toLowerCase().includes(qq)
       );
     });
-  }, [q, stores, category, storeUiById]);
+  }, [q, stores, category, areaFilter, storeUiById]);
 
   const list = useMemo(() => {
     if (!userPos) return filtered;
@@ -146,142 +142,169 @@ export function StoresScreen() {
   }, [filtered, userPos]);
 
   if (stores.length === 0) {
-    return <div className="text-sm font-medium text-[var(--mb-forest-light)]">店舗データを読み込み中です...</div>;
+    return <div className="text-sm font-bold text-[var(--mb-forest-light)]">店舗データを読み込み中です...</div>;
   }
 
   return (
-    <div className="space-y-5">
-      <h1 className="text-[1.35rem] font-semibold tracking-[-0.04em] text-[var(--mb-ink)]">店舗を探す</h1>
+    <div className="space-y-4">
+      <h1 className="mb-screen-title">店舗を探す</h1>
 
-      <div className="flex items-center gap-2.5">
-        <div className="relative min-w-0 flex-1">
-          <Search
-            className="pointer-events-none absolute left-3.5 top-1/2 h-[1.05rem] w-[1.05rem] -translate-y-1/2 text-[var(--mb-forest-light)]"
-            strokeWidth={2}
-            aria-hidden
-          />
-          <input
-            type="search"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="店舗名・エリアで検索"
-            className="w-full rounded-full border border-[rgba(30,58,47,0.08)] bg-white py-3 pl-10 pr-4 text-[0.9375rem] font-medium text-[var(--mb-ink)] shadow-sm outline-none ring-0 transition placeholder:text-[var(--mb-forest-light)]/75 focus:border-[var(--mb-forest)]/25 focus:ring-2 focus:ring-[var(--mb-forest)]/15"
-          />
-        </div>
-        <button
-          type="button"
-          title="現在地で並べ替え"
-          aria-label="現在地で並べ替え"
-          onClick={() => requestLocation()}
-          disabled={locLoading}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[rgba(30,58,47,0.1)] bg-white text-[var(--mb-forest)] shadow-sm transition active:scale-[0.97] disabled:opacity-60"
-        >
-          <Navigation className="h-5 w-5" strokeWidth={2} aria-hidden />
-        </button>
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute left-4 top-1/2 h-[1.05rem] w-[1.05rem] -translate-y-1/2 text-[var(--mb-teal-dark)]"
+          strokeWidth={2.5}
+          aria-hidden
+        />
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="店舗名・エリアで検索"
+          className="mb-search-input"
+        />
       </div>
 
-      <HorizontalDragScroll>
-        <div className="flex w-max gap-2 pb-0.5">
-          {CHIPS.map((chip) => {
-            const on = category === chip.id;
-            return (
-              <button
-                key={chip.id}
-                type="button"
-                onClick={() => setCategory(chip.id)}
-                className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
-                  on
-                    ? "bg-[var(--mb-forest)] text-white shadow-sm"
-                    : "border border-[rgba(30,58,47,0.08)] bg-white/90 text-[var(--mb-ink)] shadow-sm"
-                }`}
-              >
-                {chip.label}
-              </button>
-            );
-          })}
-        </div>
-      </HorizontalDragScroll>
+      <div className="relative">
+        <select
+          value={areaFilter}
+          onChange={(e) => setAreaFilter(e.target.value as (typeof AREAS)[number])}
+          className="mb-search-input appearance-none pr-10 font-bold"
+          aria-label="エリア・駅で絞り込み"
+        >
+          {AREAS.map((area) => (
+            <option key={area} value={area}>
+              {area === "すべて" ? "エリア・駅で絞り込み" : area}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--mb-forest-light)]"
+          strokeWidth={2.5}
+          aria-hidden
+        />
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {(
+          [
+            { id: "all", label: "すべて" },
+            { id: "bar", label: "バー" },
+            { id: "stand", label: "スタンド" },
+            { id: "restaurant", label: "レストラン" },
+            { id: "cafe", label: "カフェ" },
+          ] as const
+        ).map((chip) => {
+          const on = category === chip.id;
+          return (
+            <button
+              key={chip.id}
+              type="button"
+              onClick={() => setCategory(chip.id)}
+              className={`shrink-0 rounded-full px-4 py-2 text-xs font-extrabold transition active:scale-95 ${
+                on
+                  ? "bg-[var(--mb-teal)] text-white shadow-[0_3px_10px_rgba(13,148,136,0.35)]"
+                  : "border-2 border-[var(--mb-muted-strong)] bg-white text-[var(--mb-ink)]"
+              }`}
+            >
+              {chip.label}
+            </button>
+          );
+        })}
+      </div>
 
       <button
         type="button"
         onClick={() => requestLocation()}
         disabled={locLoading}
-        className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--mb-forest)] py-3.5 text-sm font-semibold text-white shadow-md transition active:opacity-90 disabled:opacity-70"
+        className="mb-btn-primary flex w-full items-center justify-center gap-2 py-3.5 text-sm disabled:opacity-70"
       >
-        <MapPin className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
+        <Navigation className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
         {locLoading ? "位置を取得中…" : "近くの店舗を探す"}
       </button>
-      {locErr ? <p className="text-center text-xs font-medium text-red-600/90">{locErr}</p> : null}
+      {locErr ? <p className="text-center text-xs font-bold text-red-500">{locErr}</p> : null}
 
-      <ul className="space-y-4">
+      <ul className="space-y-3">
         {list.map((store) => {
           const ui = storeUiById[store.id];
           const img = ui?.imageSrc ?? "/store/test1.png";
           const genre = genreLabel(store, ui);
-          const dist =
-            userPos != null
-              ? ` · 約 ${distanceKm(userPos.lat, userPos.lng, store.lat, store.lng).toFixed(1)} km`
-              : "";
-          const subtitle = `${genre} · ${store.area}${dist}`;
+          const distKm =
+            userPos != null ? distanceKm(userPos.lat, userPos.lng, store.lat, store.lng) : null;
+          const distLabel =
+            distKm != null
+              ? distKm < 1
+                ? `徒歩 ${Math.max(1, Math.round(distKm * 1000 / 80))} 分`
+                : `約 ${distKm.toFixed(1)} km`
+              : `${store.area}駅`;
+          const rating = mockRating(store.id);
           const fav = !!favById[store.id];
 
           return (
-            <li key={store.id} className="relative">
+            <li key={store.id}>
               <Link
                 href={`/stores/${store.id}`}
-                className="group relative block aspect-[5/3] min-h-[10.5rem] w-full overflow-hidden rounded-[1.15rem] shadow-[0_8px_28px_rgba(30,58,47,0.12)] ring-1 ring-black/10 transition active:opacity-92"
+                className="mb-surface flex gap-3 overflow-hidden p-3 transition active:scale-[0.99]"
               >
-                <Image
-                  src={img}
-                  alt=""
-                  fill
-                  unoptimized
-                  className="object-cover transition duration-500 group-hover:scale-[1.02]"
-                  sizes="(max-width: 448px) 100vw, 400px"
-                />
-                <div
-                  className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/35 to-black/10"
-                  aria-hidden
-                />
-                <div className="absolute inset-x-0 bottom-0 p-4 pr-14 pt-12">
-                  <p className="text-[1.05rem] font-bold leading-tight tracking-[-0.02em] text-white [text-shadow:0_1px_12px_rgba(0,0,0,0.45)]">
-                    {store.name}
+                <div className="relative h-[4.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-xl bg-[var(--mb-muted)]">
+                  <Image
+                    src={img}
+                    alt=""
+                    fill
+                    unoptimized
+                    className="object-cover"
+                    sizes="88px"
+                  />
+                </div>
+                <div className="min-w-0 flex-1 py-0.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="line-clamp-1 text-[0.9375rem] font-extrabold text-[var(--mb-ink)]">
+                      {store.name}
+                    </p>
+                    <button
+                      type="button"
+                      aria-pressed={fav}
+                      aria-label={fav ? "お気に入りを解除" : "お気に入りに追加"}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleFav(store.id);
+                      }}
+                      className={`shrink-0 rounded-full p-1 transition active:scale-95 ${
+                        fav ? "text-[var(--mb-pink-dark)]" : "text-[var(--mb-forest-light)]"
+                      }`}
+                    >
+                      <Heart
+                        className="h-5 w-5"
+                        fill={fav ? "currentColor" : "none"}
+                        strokeWidth={2}
+                        aria-hidden
+                      />
+                    </button>
+                  </div>
+                  <p className="mt-0.5 line-clamp-2 text-xs font-medium leading-relaxed text-[var(--mb-forest-light)]">
+                    {ui?.intro || `${genre} · 落ち着いた雰囲気の人気店`}
                   </p>
-                  <p className="mt-1 text-[0.8125rem] font-medium leading-snug text-white/92 [text-shadow:0_1px_8px_rgba(0,0,0,0.4)]">
-                    {subtitle}
-                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] font-bold">
+                    <span className="inline-flex items-center gap-0.5 text-[var(--mb-yellow-dark)]">
+                      <Star className="h-3.5 w-3.5 fill-current" strokeWidth={0} aria-hidden />
+                      {rating.toFixed(1)}
+                    </span>
+                    <span className="inline-flex items-center gap-0.5 text-[var(--mb-forest-light)]">
+                      <MapPin className="h-3 w-3" strokeWidth={2.5} aria-hidden />
+                      {distLabel}
+                    </span>
+                  </div>
                 </div>
               </Link>
-              <button
-                type="button"
-                aria-pressed={fav}
-                aria-label={fav ? "お気に入りを解除" : "お気に入りに追加"}
-                onClick={(e) => {
-                  e.preventDefault();
-                  toggleFav(store.id);
-                }}
-                className="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-[2px] transition hover:bg-black/45 active:scale-95"
-              >
-                <Heart
-                  className={`h-5 w-5 ${fav ? "fill-white stroke-white" : "stroke-white"}`}
-                  strokeWidth={2}
-                  aria-hidden
-                />
-              </button>
             </li>
           );
         })}
       </ul>
 
       {list.length === 0 ? (
-        <p className="py-6 text-center text-sm font-medium text-[var(--mb-forest-light)]">
-          条件に合う店舗がありません。検索やカテゴリを変えてみてください。
+        <p className="py-6 text-center text-sm font-bold text-[var(--mb-forest-light)]">
+          条件に合う店舗がありません。検索や絞り込みを変えてみてください。
         </p>
       ) : null}
-
-      <p className="text-center text-[11px] font-medium text-[var(--mb-forest-light)]">
-        お気に入りはこの端末に保存されます（デモ）。
-      </p>
     </div>
   );
 }

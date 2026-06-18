@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/app/providers";
 import { POST_LOGIN_BOOT_COOKIE } from "@/lib/post-login-boot";
@@ -13,6 +13,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const mplusRounded = M_PLUS_Rounded_1c({
+  variable: "--font-mplus-rounded",
+  subsets: ["latin"],
+  weight: ["400", "500", "700", "800"],
 });
 
 const metadataBaseUrl =
@@ -60,7 +66,7 @@ export const metadata: Metadata = {
     apple: [{ url: "/images/favicon.png", type: "image/png" }],
   },
   manifest: "/manifest.webmanifest",
-  themeColor: "#ffffff",
+  themeColor: "#14b8a6",
   openGraph: {
     type: "website",
     locale: "ja_JP",
@@ -98,10 +104,10 @@ export default async function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${mplusRounded.variable} h-full antialiased`}
     >
       <head>
-        <link rel="mask-icon" href="/images/favicon.png" color="#1e3a2f" />
+        <link rel="mask-icon" href="/images/favicon.png" color="#14b8a6" />
       </head>
       <body
         className={`min-h-full bg-[var(--mb-bg)] text-[var(--mb-ink)]${postLoginBootLock ? " mb-post-login-boot-lock" : ""}`}

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
 import { useStock } from "@/components/mybottle/stock-provider";
 import { useMasterData } from "@/components/mybottle/master-data-provider";
@@ -20,8 +20,10 @@ function formatJpy(value: number) {
   }).format(value);
 }
 
-export function ProductStep4Client({ storeId, productId, quantity }: Props) {
+export function ProductStep4Client({ storeId, productId, quantity: initialQuantity }: Props) {
   const { purchase } = useStock();
+  const [quantity, setQuantity] = useState(initialQuantity);
+  const [pin, setPin] = useState(["", "", "", ""]);
   const [done, setDone] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { products, stores } = useMasterData();
@@ -34,36 +36,26 @@ export function ProductStep4Client({ storeId, productId, quantity }: Props) {
     () => stores.find((item) => item.id === storeId) ?? stores[0],
     [storeId, stores],
   );
-  const verifyCode = useMemo(() => {
-    const seed = `${storeId}:${productId}:${quantity}`;
-    let hash = 0;
-    for (let i = 0; i < seed.length; i += 1) {
-      hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-    }
-    return hash.toString(36).toUpperCase().slice(0, 8).padEnd(8, "0");
-  }, [productId, quantity, storeId]);
 
   if (!product || !store) {
     return (
-      <section className="mb-surface p-6 text-center text-sm font-medium text-[var(--mb-forest-light)]">
+      <section className="mb-surface p-6 text-center text-sm font-bold text-[var(--mb-forest-light)]">
         商品または店舗情報を読み込めませんでした。
       </section>
     );
   }
 
   const total = product.priceJpy * quantity;
+  const pinComplete = pin.every((d) => d.length === 1);
 
   if (done) {
     return (
-      <section className="mb-surface border-emerald-200/80 bg-emerald-50/90 p-8 text-center">
-        <p className="text-2xl font-semibold tracking-[-0.03em] text-emerald-800">追加完了</p>
-        <p className="mt-2 text-base font-medium text-[var(--mb-forest-light)]">
+      <section className="mb-celebrate-pop mb-pop-card mb-pop-card--teal rounded-[1.25rem] p-8 text-center text-white">
+        <p className="text-2xl font-extrabold">追加完了！</p>
+        <p className="mt-2 text-base font-bold text-white/90">
           {store.name} での購入分をマイボトルに追加しました。
         </p>
-        <Link
-          href="/"
-          className="mt-6 inline-block rounded-full bg-[var(--mb-forest)] px-8 py-3.5 text-base font-semibold text-white transition active:opacity-90"
-        >
+        <Link href="/" className="mt-6 inline-flex rounded-full bg-white px-8 py-3.5 text-base font-extrabold text-[var(--mb-teal-dark)]">
           ホームへ
         </Link>
       </section>
@@ -72,7 +64,7 @@ export function ProductStep4Client({ storeId, productId, quantity }: Props) {
 
   return (
     <section className="mb-surface space-y-5 p-5">
-      <div className="flex gap-4 rounded-[0.85rem] border border-[var(--mb-ring)] bg-[var(--mb-muted)] p-4">
+      <div className="flex gap-4 rounded-[1rem] bg-[var(--mb-muted)] p-4">
         <div className="mb-bottle-stage mb-bottle-stage--row-compact">
           <div className="mb-bottle-stage__bottle">
             <BottleProductImage
@@ -86,36 +78,54 @@ export function ProductStep4Client({ storeId, productId, quantity }: Props) {
           </div>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-[var(--mb-forest-light)]">対象店舗: {store.name}</p>
-          <p className="mt-1 text-lg font-semibold tracking-[-0.02em] text-[var(--mb-ink)]">{product.name}</p>
-          <p className="mt-2 text-sm font-medium text-[var(--mb-forest-light)]">
-            注文内容: {quantity}セット / 合計{" "}
-            <span className="text-xl font-semibold tabular-nums text-[var(--mb-forest)]">{formatJpy(total)}</span>
+          <p className="text-xs font-bold text-[var(--mb-forest-light)]">対象店舗: {store.name}</p>
+          <p className="mt-1 text-lg font-extrabold text-[var(--mb-ink)]">{product.name}</p>
+          <p className="mt-2 text-sm font-bold text-[var(--mb-forest-light)]">
+            {quantity}セット / 合計{" "}
+            <span className="text-xl font-extrabold tabular-nums text-[var(--mb-teal-dark)]">
+              {formatJpy(total)}
+            </span>
           </p>
         </div>
       </div>
 
-      <div className="rounded-[var(--mb-radius-card)] border border-[var(--mb-ring)] bg-white p-4 text-center">
-        <p className="text-xs font-semibold tracking-[0.12em] text-[var(--mb-forest-light)]">STORE CHECK</p>
-        <div
-          className="mx-auto mt-3 h-40 w-40 rounded-lg border border-[var(--mb-ring)] bg-[linear-gradient(90deg,#111_10%,transparent_10%),linear-gradient(#111_10%,transparent_10%)] bg-[size:14px_14px] bg-center"
-          role="img"
-          aria-label="店員提示用QRイメージ"
-        />
-        <p className="mt-3 text-lg font-semibold tracking-[0.16em] text-[var(--mb-ink)]">{verifyCode}</p>
-        <p className="mt-2 text-sm font-medium leading-relaxed text-[var(--mb-forest-light)]">
-          店頭でお会計後、この画面を店員に提示してください
-          <br />
-          確認が完了したら「マイボトルに追加」を押します
+      <div className="rounded-[1rem] border-2 border-[var(--mb-muted-strong)] bg-white p-5 text-center">
+        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--mb-forest-light)]">
+          確認用 PIN（デモ）
+        </p>
+        <div className="mt-4 flex justify-center gap-2">
+          {pin.map((digit, index) => (
+            <input
+              key={index}
+              inputMode="numeric"
+              maxLength={1}
+              value={digit}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "").slice(-1);
+                const next = [...pin];
+                next[index] = val;
+                setPin(next);
+                if (val && index < 3) {
+                  const el = e.target.parentElement?.querySelectorAll("input")[index + 1] as HTMLInputElement | undefined;
+                  el?.focus();
+                }
+              }}
+              className="h-14 w-12 rounded-xl border-2 border-[var(--mb-teal)]/30 bg-[var(--mb-muted)] text-center text-2xl font-extrabold text-[var(--mb-ink)] outline-none focus:border-[var(--mb-teal)] focus:ring-2 focus:ring-[var(--mb-teal)]/20"
+              aria-label={`PIN ${index + 1}桁目`}
+            />
+          ))}
+        </div>
+        <p className="mt-3 text-xs font-medium text-[var(--mb-forest-light)]">
+          店頭でお会計後、PINを入力して購入を確定します
         </p>
       </div>
 
       <button
         type="button"
-        className="w-full rounded-full bg-[var(--mb-forest)] px-4 py-4 text-base font-semibold text-white transition active:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-        disabled={isSubmitting}
+        className="mb-btn-primary w-full py-4 text-base disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={isSubmitting || !pinComplete}
         onClick={async () => {
-          if (isSubmitting) return;
+          if (isSubmitting || !pinComplete) return;
           setIsSubmitting(true);
           try {
             await purchase({ storeId, productId, paymentMethod: "card", quantitySets: quantity });
@@ -125,8 +135,12 @@ export function ProductStep4Client({ storeId, productId, quantity }: Props) {
           }
         }}
       >
-        {isSubmitting ? "追加中..." : "マイボトルに追加"}
+        {isSubmitting ? "購入中..." : "購入する"}
       </button>
+
+      <Link href={`/products/step-3?storeId=${storeId}&productId=${productId}`} className="block text-center text-sm font-extrabold text-[var(--mb-forest-light)]">
+        キャンセル
+      </Link>
     </section>
   );
 }

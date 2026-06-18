@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { AnimatedCircularGauge } from "@/components/mybottle/animated-circular-gauge";
+import { Beer } from "lucide-react";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
 import { useStock } from "@/components/mybottle/stock-provider";
 import { useMasterData } from "@/components/mybottle/master-data-provider";
@@ -22,9 +22,10 @@ function expiryLabel(updatedAt: string) {
 export function BottleDetailClient({ storeId, productId }: Props) {
   const router = useRouter();
   const { stock, logs, removeBottle } = useStock();
-  const { products, stores } = useMasterData();
+  const { stores } = useMasterData();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 60_000);
     return () => window.clearInterval(id);
@@ -35,7 +36,6 @@ export function BottleDetailClient({ storeId, productId }: Props) {
     [stock, storeId, productId],
   );
 
-  const max = products.find((p) => p.id === productId)?.bundleSize ?? 5;
   const productLogs = useMemo(
     () => logs.filter((l) => l.productId === productId).slice(0, 8),
     [logs, productId],
@@ -43,16 +43,15 @@ export function BottleDetailClient({ storeId, productId }: Props) {
 
   if (!item) {
     return (
-      <div className="mb-surface px-5 py-10 text-center text-sm font-medium text-[var(--mb-forest-light)]">
+      <div className="mb-surface px-5 py-10 text-center text-sm font-bold text-[var(--mb-forest-light)]">
         このボトルは見つかりませんでした。
-        <Link href="/" className="mt-4 block font-semibold text-[var(--mb-accent-dark)]">
-          ホームへ
+        <Link href="/bottles" className="mt-4 block font-extrabold text-[var(--mb-teal-dark)]">
+          ボトル一覧へ
         </Link>
       </div>
     );
   }
 
-  const pct = Math.min(100, Math.round((item.remainingUnits / max) * 100));
   const storeName = stores.find((s) => s.id === item.storeId)?.name ?? "加盟店";
   const daysLeft = Math.max(
     0,
@@ -75,41 +74,44 @@ export function BottleDetailClient({ storeId, productId }: Props) {
               />
             </div>
           </div>
-          <h1 className="mt-5 text-center text-[1.35rem] font-semibold tracking-[-0.03em] text-[var(--mb-ink)]">
+          <h1 className="mt-5 text-center text-[1.35rem] font-extrabold tracking-[-0.03em] text-[var(--mb-ink)]">
             {item.productName}
           </h1>
-          <p className="mt-1 text-sm font-medium text-[var(--mb-forest-light)]">{storeName}</p>
-          <p className="mt-2 text-xs font-medium text-[var(--mb-forest-light)]">
-            有効期限 {expiryLabel(item.updatedAt)}
-          </p>
+          <p className="mt-1 text-sm font-bold text-[var(--mb-forest-light)]">{storeName}</p>
         </div>
 
-        <div className="mb-surface flex flex-col items-center px-5 py-8">
-          <AnimatedCircularGauge
-            value={pct}
-            centerText={`${item.remainingUnits}${item.unitLabel}`}
-            caption="残量"
-          />
-          <p className="mt-3 text-xs font-medium text-[var(--mb-forest-light)]">有効期限まで約 {daysLeft} 日</p>
+        <div className="mb-pop-card mb-pop-card--yellow rounded-[1.25rem] px-5 py-6 text-center shadow-[0_8px_24px_rgba(234,179,8,0.25)]">
+          <p className="text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-[#92400e]/75">残量</p>
+          <p className="mt-2 text-[2.75rem] font-extrabold leading-none tracking-[-0.04em] text-red-600 tabular-nums">
+            残り {item.remainingUnits}
+            <span className="text-xl">{item.unitLabel}</span>
+          </p>
+          <p className="mt-3 text-sm font-bold text-[#78350f]">
+            有効期限 {expiryLabel(item.updatedAt)}
+            <span className="text-[var(--mb-forest-light)]"> · あと約 {daysLeft} 日</span>
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <Link
-            href={`/products/step-2?storeId=${storeId}`}
-            className="rounded-full bg-[var(--mb-forest)] py-3.5 text-center text-sm font-semibold text-white transition active:opacity-90"
-          >
-            ボトルを追加する
-          </Link>
-          <Link
             href={`/consume/step-1?storeId=${storeId}&productId=${productId}`}
-            className="rounded-full border border-[var(--mb-forest)]/30 bg-[var(--mb-card)] py-3.5 text-center text-sm font-semibold text-[var(--mb-forest)] ring-1 ring-[var(--mb-ring)] transition active:opacity-90"
+            className="mb-btn-primary w-full py-3.5 text-sm"
           >
             使用する
+          </Link>
+          <Link
+            href={`/products/step-2?storeId=${storeId}`}
+            className="mb-btn-secondary w-full py-3.5 text-sm"
+          >
+            追加購入
           </Link>
         </div>
 
         <section className="mb-surface p-5">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.1em] text-[var(--mb-forest-light)]">利用履歴</h2>
+          <h2 className="flex items-center gap-2 text-sm font-extrabold text-[var(--mb-ink)]">
+            <Beer className="h-4 w-4 text-[var(--mb-teal-dark)]" strokeWidth={2.5} aria-hidden />
+            利用履歴
+          </h2>
           <ul className="mt-4 space-y-0 text-sm">
             {productLogs.length === 0 ? (
               <li className="py-2 font-medium text-[var(--mb-forest-light)]">履歴はまだありません</li>
@@ -117,37 +119,28 @@ export function BottleDetailClient({ storeId, productId }: Props) {
               productLogs.map((log) => (
                 <li
                   key={log.id}
-                  className="flex gap-4 border-b border-[var(--mb-muted-strong)] py-4 last:border-0 last:pb-0 first:pt-0"
+                  className="flex items-center justify-between gap-3 border-b border-[var(--mb-muted-strong)] py-3 last:border-0"
                 >
-                  <BottleProductImage
-                    key={`${log.id}-${log.productId}`}
-                    productId={log.productId}
-                    type={item.type}
-                    frameClassName="h-11 w-11 shrink-0"
-                    fallbackEmojiClassName="text-lg"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs font-medium text-[var(--mb-forest-light)]">
-                      {new Date(log.createdAt).toLocaleDateString("ja-JP")}
-                    </span>
-                    <p className="mt-0.5 font-medium leading-snug text-[var(--mb-ink)]">{log.detail}</p>
-                  </div>
+                  <span className="text-xs font-bold text-[var(--mb-forest-light)]">
+                    {new Date(log.createdAt).toLocaleDateString("ja-JP")}
+                  </span>
+                  <span className="font-extrabold text-[var(--mb-teal-dark)]">
+                    -{log.units}
+                    {log.unitLabel}
+                  </span>
                 </li>
               ))
             )}
           </ul>
         </section>
 
-        <Link
-          href="/"
-          className="block rounded-full border border-[var(--mb-ring)] bg-[var(--mb-muted)] py-3.5 text-center text-sm font-semibold text-[var(--mb-forest)] transition hover:bg-[var(--mb-muted-strong)] active:opacity-80"
-        >
+        <Link href="/bottles" className="mb-btn-secondary w-full py-3.5 text-sm">
           一覧へ戻る
         </Link>
 
         <button
           type="button"
-          className="w-full rounded-full border border-red-200/90 bg-red-50/90 py-3.5 text-center text-sm font-semibold text-red-700 transition active:opacity-90 hover:bg-red-50"
+          className="w-full rounded-full border-2 border-red-200 bg-red-50 py-3.5 text-center text-sm font-extrabold text-red-600 transition active:opacity-90"
           onClick={() => setConfirmDelete(true)}
         >
           このボトルを削除
@@ -163,25 +156,25 @@ export function BottleDetailClient({ storeId, productId }: Props) {
           onClick={() => setConfirmDelete(false)}
         >
           <div
-            className="w-full max-w-sm rounded-[var(--mb-radius-card)] border border-red-200/80 bg-[var(--mb-card)] p-6 shadow-[var(--mb-shadow-card)]"
+            className="w-full max-w-sm rounded-[var(--mb-radius-pop)] border border-red-200 bg-white p-6 shadow-[var(--mb-shadow-pop)]"
             onClick={(event) => event.stopPropagation()}
           >
-            <p className="text-base font-semibold text-red-800">このボトルを削除しますか？</p>
-            <p className="mt-2 text-sm font-medium text-red-700/95">この操作は取り消せません。</p>
+            <p className="text-base font-extrabold text-red-700">このボトルを削除しますか？</p>
+            <p className="mt-2 text-sm font-medium text-red-600/90">この操作は取り消せません。</p>
             <div className="mt-5 grid grid-cols-2 gap-3">
               <button
                 type="button"
-                className="rounded-full border border-[var(--mb-ring)] bg-[var(--mb-muted)] py-3 text-sm font-semibold text-[var(--mb-ink)] transition active:opacity-90"
+                className="mb-btn-secondary w-full py-3 text-sm"
                 onClick={() => setConfirmDelete(false)}
               >
                 キャンセル
               </button>
               <button
                 type="button"
-                className="rounded-full bg-red-600 py-3 text-sm font-semibold text-white transition hover:bg-red-700 active:opacity-95"
+                className="w-full rounded-full bg-red-500 py-3 text-sm font-extrabold text-white transition active:opacity-95"
                 onClick={async () => {
                   await removeBottle({ storeId, productId });
-                  router.push("/");
+                  router.push("/bottles");
                 }}
               >
                 削除する

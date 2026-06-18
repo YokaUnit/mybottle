@@ -1,28 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  /* Canvas: pure white + subtle green-gray surfaces (forest brand kept) */
+  /* Pop design system */
   --mb-bg: #ffffff;
-  --mb-muted: #f3f5f4;
-  --mb-muted-strong: #e6ebe8;
-  --mb-ink: #1a2e24;
-  --mb-forest: #1e3a2f;
-  --mb-forest-light: #3d5248;
-  --mb-beige: #dfe8e3;
+  --mb-muted: #f4f6f8;
+  --mb-muted-strong: #e8ecf0;
+  --mb-ink: #1f2937;
+  --mb-forest: #0d9488;
+  --mb-forest-dark: #0f766e;
+  --mb-forest-light: #64748b;
+  --mb-teal: #14b8a6;
+  --mb-teal-dark: #0d9488;
+  --mb-yellow: #fde047;
+  --mb-yellow-bright: #fef08a;
+  --mb-yellow-dark: #ca8a04;
+  --mb-pink: #f472b6;
+  --mb-pink-dark: #ec4899;
+  --mb-beige: #fef9c3;
   --mb-card: #ffffff;
-  --mb-accent: #7dd3fc;
-  --mb-accent-dark: #38bdf8;
-  --mb-divider: rgba(30, 58, 47, 0.1);
+  --mb-accent: #fde047;
+  --mb-accent-dark: #eab308;
+  --mb-divider: rgba(15, 23, 42, 0.08);
   --background: var(--mb-bg);
   --foreground: var(--mb-ink);
-  --mb-radius-card: 1.25rem;
+  --mb-radius-card: 1rem;
+  --mb-radius-pop: 1.25rem;
   --mb-radius-pill: 9999px;
-  --mb-ring: rgba(30, 58, 47, 0.1);
-  --mb-shadow-card: 0 1px 0 rgba(30, 58, 47, 0.05), 0 10px 40px rgba(30, 58, 47, 0.06);
-  --mb-shell-blur: 20px;
-  /* 横スクロールのボトル商品カード: クリームの情報エリア */
-  --mb-bottle-card-cream: #f4f1ea;
-  --mb-bottle-card-shadow: 0 2px 3px rgba(30, 58, 47, 0.04), 0 10px 28px rgba(30, 58, 47, 0.08);
+  --mb-ring: rgba(15, 23, 42, 0.08);
+  --mb-shadow-card: 0 2px 8px rgba(15, 23, 42, 0.06), 0 12px 32px rgba(15, 23, 42, 0.08);
+  --mb-shadow-pop: 0 4px 14px rgba(15, 23, 42, 0.1);
+  --mb-shell-blur: 16px;
+  --mb-bottle-card-cream: #fffbeb;
+  --mb-bottle-card-shadow: 0 2px 6px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08);
 }
 
 @theme inline {
@@ -30,6 +39,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-rounded: var(--font-mplus-rounded);
 }
 
 html,
@@ -42,7 +52,7 @@ body {
 }
 
 body {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-mplus-rounded), var(--font-geist-sans), system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -65,7 +75,7 @@ canvas {
 }
 
 .mb-surface {
-  border-radius: var(--mb-radius-card);
+  border-radius: var(--mb-radius-pop);
   background: var(--mb-card);
   box-shadow: var(--mb-shadow-card);
   border: 1px solid var(--mb-ring);
@@ -89,21 +99,113 @@ canvas {
 }
 
 .mb-screen-title {
-  font-size: 1.3125rem;
-  font-weight: 600;
-  letter-spacing: -0.035em;
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--mb-ink);
 }
 
 .mb-label-caps {
   font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--mb-forest-light);
 }
 
-/* ホーム等: 店舗名の下線が左から伸びる */
+.mb-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: var(--mb-radius-pill);
+  background: var(--mb-teal);
+  padding: 0.875rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.mb-btn-primary:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.mb-btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: var(--mb-radius-pill);
+  border: 2px solid var(--mb-teal);
+  background: var(--mb-card);
+  padding: 0.8125rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--mb-teal-dark);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.mb-btn-secondary:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.mb-pop-card {
+  border-radius: var(--mb-radius-pop);
+  box-shadow: var(--mb-shadow-pop);
+  overflow: hidden;
+}
+
+.mb-pop-card--yellow {
+  background: linear-gradient(135deg, #fef08a 0%, #fde047 55%, #facc15 100%);
+  color: #713f12;
+}
+
+.mb-pop-card--teal {
+  background: linear-gradient(135deg, #5eead4 0%, #14b8a6 55%, #0d9488 100%);
+  color: #ffffff;
+}
+
+.mb-pop-card--pink {
+  background: linear-gradient(135deg, #fbcfe8 0%, #f472b6 55%, #ec4899 100%);
+  color: #ffffff;
+}
+
+.mb-search-input {
+  width: 100%;
+  border-radius: var(--mb-radius-pill);
+  border: 2px solid var(--mb-muted-strong);
+  background: #ffffff;
+  padding: 0.8125rem 1rem 0.8125rem 2.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--mb-ink);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mb-search-input::placeholder {
+  color: var(--mb-forest-light);
+  font-weight: 500;
+}
+
+.mb-search-input:focus {
+  border-color: var(--mb-teal);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+}
+
+.mb-nav-active {
+  color: var(--mb-teal-dark);
+}
+
+.mb-nav-active-icon {
+  background: rgba(20, 184, 166, 0.18);
+  color: var(--mb-teal-dark);
+}
+
 .mb-store-name-underline {
   position: relative;
   display: inline-block;
@@ -117,11 +219,11 @@ canvas {
   position: absolute;
   left: 0;
   bottom: 0;
-  height: 2px;
-  width: max(calc(100% + 2.75rem), 11.5rem);
+  height: 3px;
+  width: max(calc(100% + 2rem), 10rem);
   max-width: min(calc(100vw - 2.5rem), 22rem);
   border-radius: 9999px;
-  background: linear-gradient(90deg, var(--mb-forest), #2d5a45);
+  background: linear-gradient(90deg, var(--mb-teal), var(--mb-pink));
   transform: scaleX(0);
   transform-origin: left center;
   animation: mb-store-underline-draw 0.7s cubic-bezier(0.2, 0.85, 0.2, 1) forwards;
@@ -141,7 +243,6 @@ canvas {
   }
 }
 
-/* ボトル展示: 初版3Dの縦グラデの「壁」を上下反転（上がやや濃いセージ→地平で明るい）、床タンはそのまま */
 .mb-bottle-stage {
   --mb-stage-horizon: 68%;
   --mb-stage-min-h: 7.6rem;
@@ -155,31 +256,16 @@ canvas {
   justify-content: center;
   padding: var(--mb-stage-py) var(--mb-stage-px) var(--mb-stage-pb);
   isolation: isolate;
-  background-color: #d2c1a5;
+  background-color: #fde68a;
   background-image:
-    radial-gradient(ellipse 92% 65% at 50% 36%, rgba(255, 255, 255, 0.14) 0%, transparent 52%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='0.055'/%3E%3C/svg%3E"),
-    repeating-linear-gradient(
-      90deg,
-      rgba(74, 58, 42, 0.028) 0px,
-      transparent 1px,
-      transparent 14px,
-      rgba(255, 255, 255, 0.05) 15px,
-      transparent 16px
-    ),
+    radial-gradient(ellipse 92% 65% at 50% 36%, rgba(255, 255, 255, 0.25) 0%, transparent 52%),
     linear-gradient(
       180deg,
-      #8f9d8e 0%,
-      #8f9d8e 0.15%,
-      #a8b5a7 calc(var(--mb-stage-horizon) - 58%),
-      #c5d0c4 calc(var(--mb-stage-horizon) - 28%),
-      #e2e8e0 calc(var(--mb-stage-horizon) - 0.15%),
-      var(--mb-bottle-card-cream) var(--mb-stage-horizon),
-      #e6d8c0 var(--mb-stage-horizon),
-      #ddccb0 82%,
-      #d2c1a5 100%
+      #a7f3d0 0%,
+      #d1fae5 calc(var(--mb-stage-horizon) - 28%),
+      #fef9c3 var(--mb-stage-horizon),
+      #fde68a 100%
     );
-  background-size: 100% 100%, 96px 96px, 100% 100%, 100% 100%;
 }
 
 .mb-bottle-stage::before {
@@ -193,32 +279,57 @@ canvas {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(42, 48, 40, 0.22) 22%,
-    rgba(62, 52, 38, 0.28) 50%,
-    rgba(42, 48, 40, 0.22) 78%,
+    rgba(13, 148, 136, 0.2) 22%,
+    rgba(236, 72, 153, 0.25) 50%,
+    rgba(13, 148, 136, 0.2) 78%,
     transparent 100%
   );
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
   pointer-events: none;
   z-index: 0;
 }
 
-/* ホーム等の小さなボトルカード外枠（クリーム地＋やや強い浮き影） */
 .mb-bottle-card-shell {
   background-color: var(--mb-bottle-card-cream);
   box-shadow: var(--mb-bottle-card-shadow);
 }
 
-/* カード下部の情報ブロック（#f4f1ea 基調・ステージとの境だけやわらかく） */
 .mb-bottle-card-foot {
   background: linear-gradient(
     180deg,
-    #e8e5de 0%,
+    #fef3c7 0%,
     var(--mb-bottle-card-cream) 30%,
     var(--mb-bottle-card-cream) 100%
   );
-  border-top: 1px solid rgba(30, 58, 47, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.mb-bottle-stage--pop {
+  --mb-stage-horizon: 72%;
+  --mb-stage-min-h: 8rem;
+  background-color: #e8f8f2;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 18%, rgba(255, 255, 255, 0.55) 0%, transparent 55%),
+    linear-gradient(180deg, #c8ebe0 0%, #dff5ee 38%, #fff9eb 72%, #ffefd0 100%);
+  box-shadow: inset 0 -6px 14px rgba(251, 191, 36, 0.1);
+}
+
+.mb-bottle-stage--pop::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0.15rem;
+  z-index: 0;
+  width: 32%;
+  max-width: 2.1rem;
+  height: 0.3rem;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.15);
+  filter: blur(2px);
+}
+
+.mb-bottle-stage--pop .mb-bottle-stage__bottle {
+  filter: drop-shadow(0 2px 3px rgba(15, 23, 42, 0.08));
 }
 
 .mb-bottle-stage__bottle {
@@ -226,7 +337,6 @@ canvas {
   z-index: 1;
 }
 
-/* 購入確認・使用フロー: 横並びサムネ用 */
 .mb-bottle-stage--row {
   --mb-stage-min-h: 6.5rem;
   --mb-stage-py: 0.45rem;
@@ -247,7 +357,6 @@ canvas {
   align-self: center;
 }
 
-/* ボトル詳細ヒーロー */
 .mb-bottle-stage--hero {
   --mb-stage-min-h: 13rem;
   --mb-stage-py: 0.85rem;
@@ -255,11 +364,10 @@ canvas {
   --mb-stage-pb: 0.55rem;
   width: 100%;
   max-width: 17.5rem;
-  border-radius: 0.95rem;
+  border-radius: var(--mb-radius-pop);
   overflow: hidden;
 }
 
-/* 完了画面など: 中央のやや小さい台 */
 .mb-bottle-stage--square {
   --mb-stage-min-h: 9rem;
   --mb-stage-py: 0.65rem;
@@ -268,11 +376,10 @@ canvas {
   width: 10rem;
   max-width: 100%;
   margin-inline: auto;
-  border-radius: 0.95rem;
+  border-radius: var(--mb-radius-pop);
   overflow: hidden;
 }
 
-/* 履歴リスト等: 正方形サムネ（縦長ストリップにならないよう壁を短く） */
 .mb-bottle-stage--thumb {
   --mb-stage-horizon: 78%;
   --mb-stage-min-h: 3.75rem;
@@ -286,7 +393,7 @@ canvas {
   min-height: 3.75rem;
   max-height: 3.75rem;
   flex-shrink: 0;
-  border-radius: 0.65rem;
+  border-radius: 0.75rem;
   overflow: hidden;
   align-self: center;
 }
@@ -337,17 +444,17 @@ canvas {
   width: 14px;
   height: 14px;
   border-radius: 9999px;
-  background: #38bdf8;
+  background: var(--mb-teal);
   border: 2px solid #ffffff;
-  box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.25);
+  box-shadow: 0 0 0 5px rgba(20, 184, 166, 0.25);
 }
 
 .mb-user-dot-pulse {
   width: 42px;
   height: 42px;
   border-radius: 9999px;
-  background: rgba(56, 189, 248, 0.16);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: rgba(20, 184, 166, 0.16);
+  border: 1px solid rgba(20, 184, 166, 0.35);
   animation: mb-location-pulse 1.8s ease-out infinite;
 }
 
@@ -366,14 +473,32 @@ canvas {
   }
 }
 
-/* ログイン直後のブートオーバーレイ（Next 風の暗背景＋微光） */
+@keyframes mb-confetti-pop {
+  0% {
+    transform: scale(0.6) rotate(-8deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.mb-celebrate-pop {
+  animation: mb-confetti-pop 0.55s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
 .mb-post-login-boot-aurora {
   position: absolute;
   inset: -40%;
   background:
-    radial-gradient(ellipse 80% 55% at 50% 120%, rgba(30, 58, 47, 0.85), transparent 55%),
-    radial-gradient(ellipse 60% 45% at 20% 30%, rgba(56, 189, 248, 0.12), transparent 50%),
-    radial-gradient(ellipse 50% 40% at 85% 25%, rgba(125, 211, 252, 0.1), transparent 45%);
+    radial-gradient(ellipse 80% 55% at 50% 120%, rgba(13, 148, 136, 0.85), transparent 55%),
+    radial-gradient(ellipse 60% 45% at 20% 30%, rgba(253, 224, 71, 0.15), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 85% 25%, rgba(244, 114, 182, 0.12), transparent 45%);
   animation: mb-post-login-boot-aurora-shift 8s ease-in-out infinite;
 }
 
@@ -410,7 +535,7 @@ canvas {
   height: 100%;
   width: 40%;
   border-radius: 9999px;
-  background: linear-gradient(90deg, var(--mb-forest), #84cc16, var(--mb-accent-dark));
+  background: linear-gradient(90deg, var(--mb-teal), var(--mb-yellow), var(--mb-pink));
   animation: mb-post-login-boot-bar-slide 1.35s ease-in-out infinite;
 }
 
@@ -425,7 +550,8 @@ canvas {
 
 @media (prefers-reduced-motion: reduce) {
   .mb-post-login-boot-aurora,
-  .mb-post-login-boot-bar-fill {
+  .mb-post-login-boot-bar-fill,
+  .mb-celebrate-pop {
     animation: none;
   }
 
@@ -436,10 +562,6 @@ canvas {
   }
 }
 
-/*
- * ログイン直後: ハイドレーション前の 1 フレームでもホームが見えないよう、
- * サーバーが付与した body クラスで全面ベール（React オーバーレイ z-200 の下層）。
- */
 body.mb-post-login-boot-lock {
   overflow: hidden;
 }
@@ -449,6 +571,196 @@ body.mb-post-login-boot-lock::after {
   position: fixed;
   inset: 0;
   z-index: 150;
-  background: #0a1210;
+  background: #0f172a;
   pointer-events: none;
+}
+
+/* ── Home screen (mockup-faithful) ── */
+
+.mb-home-greeting-wave {
+  color: #0d9488;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.mb-home-name-block {
+  position: relative;
+  display: inline-block;
+  margin-top: 0.15rem;
+}
+
+.mb-home-name-scribble {
+  position: absolute;
+  left: -0.15rem;
+  bottom: -0.35rem;
+  width: calc(100% + 0.5rem);
+  height: 0.55rem;
+  pointer-events: none;
+}
+
+.mb-home-section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #0f766e;
+  letter-spacing: 0.02em;
+}
+
+.mb-home-section-label__diamond {
+  color: #0d9488;
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+.mb-home-hero-card {
+  position: relative;
+  overflow: visible;
+  border-radius: 1.35rem;
+  background: linear-gradient(145deg, #fff176 0%, #ffee58 42%, #fdd835 100%);
+  box-shadow: 0 6px 0 #e6b800, 0 14px 32px rgba(234, 179, 8, 0.35);
+  min-height: 9.5rem;
+  padding: 1.1rem 1.15rem 1.15rem;
+}
+
+.mb-home-hero-card__dots {
+  position: absolute;
+  right: 0.35rem;
+  top: 0.35rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  opacity: 0.35;
+  background-image: radial-gradient(circle, #fff 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+  pointer-events: none;
+}
+
+.mb-home-hero-card__cheers {
+  position: absolute;
+  right: 5.5rem;
+  top: 0.65rem;
+  transform: rotate(-12deg);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+.mb-home-hero-card__star {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.mb-home-bottle-count {
+  font-size: 3.75rem;
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  color: #ff6b9d;
+  -webkit-text-stroke: 3.5px #1a1a1a;
+  paint-order: stroke fill;
+}
+
+.mb-home-remaining-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.65rem;
+  border-radius: 9999px;
+  background: #1a1a1a;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.mb-home-remaining-pill strong {
+  color: #ffee58;
+  font-weight: 900;
+}
+
+.mb-home-rec-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--mb-ink);
+}
+
+.mb-home-rec-heading__icon {
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 9999px;
+  background: #ffee58;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.mb-home-rec-card {
+  display: flex;
+  width: 7.35rem;
+  min-height: 9.75rem;
+  flex-shrink: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 1.1rem;
+  padding: 0.85rem 0.7rem 0.75rem;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+  transition: transform 0.15s ease;
+}
+
+.mb-home-rec-card:active {
+  transform: scale(0.97);
+}
+
+.mb-home-rec-card--orange {
+  background: linear-gradient(160deg, #ff9f43 0%, #ffc048 55%, #ffd56b 100%);
+}
+
+.mb-home-rec-card--teal {
+  background: linear-gradient(160deg, #2ec4b6 0%, #20b2aa 55%, #0d9488 100%);
+}
+
+.mb-home-rec-card--pink {
+  background: linear-gradient(160deg, #ff6b9d 0%, #f472b6 55%, #ec4899 100%);
+}
+
+.mb-home-rec-card__text {
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.45;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.mb-home-rec-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  align-self: flex-start;
+  border-radius: 9999px;
+  background: #1a1a1a;
+  padding: 0.32rem 0.62rem;
+  font-size: 0.625rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.mb-home-action-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  border-radius: 1.1rem;
+  background: var(--mb-muted);
+  padding: 0.55rem;
 }

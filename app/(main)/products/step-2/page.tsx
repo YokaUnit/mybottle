@@ -33,16 +33,16 @@ export default async function ProductStep2Page({ searchParams }: Props) {
     <main className="space-y-4">
       <MobileStepHeader title="ボトルを選択" step={2} />
       <section className="mb-surface space-y-5 p-5">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--mb-forest)]/20 bg-[var(--mb-accent)]/35 px-3 py-1.5 ring-1 ring-[var(--mb-forest)]/10">
-          <span className="text-[10px] font-semibold tracking-[0.08em] text-[var(--mb-forest-light)]">対象店舗</span>
-          <span className="text-sm font-semibold text-[var(--mb-ink)]">{storeName}</span>
+        <div className="inline-flex items-center gap-2 rounded-full bg-[var(--mb-yellow)]/50 px-3 py-1.5 ring-2 ring-[var(--mb-yellow-dark)]/20">
+          <span className="text-[10px] font-extrabold tracking-[0.08em] text-[#92400e]">対象店舗</span>
+          <span className="text-sm font-extrabold text-[#713f12]">{storeName}</span>
         </div>
-        <p className="text-sm font-medium text-[var(--mb-forest-light)]">
+        <p className="text-sm font-bold text-[var(--mb-forest-light)]">
           飲みたい種類を選ぶと、次の画面でセット数（何セット買うか）を決められます。
         </p>
         {orderedCategories.map((category) => (
           <section key={category} className="space-y-2">
-            <h2 className="text-[0.82rem] font-semibold uppercase tracking-[0.12em] text-[var(--mb-forest-light)]">
+            <h2 className="text-[0.82rem] font-extrabold uppercase tracking-[0.1em] text-[var(--mb-teal-dark)]">
               {category}
             </h2>
             <HorizontalDragScroll>

@@ -2,46 +2,102 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { AnimatedLinearGauge } from "@/components/mybottle/animated-linear-gauge";
-import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
-import { HorizontalDragScroll } from "@/components/mybottle/horizontal-drag-scroll";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Calendar,
+  ChevronRight,
+  Crown,
+  Plus,
+  ShoppingBag,
+  Star,
+  TrendingUp,
+} from "lucide-react";
+import { HomeBottlesSection } from "@/components/mybottle/home-bottles-section";
+import { RecCoinsArt, RecCouponArt, RecGiftArt } from "@/components/mybottle/home-rec-art";
 import { useStock } from "@/components/mybottle/stock-provider";
-import { useMasterData } from "@/components/mybottle/master-data-provider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-function expiryLabel(updatedAt: string) {
-  const d = new Date(updatedAt);
-  d.setMonth(d.getMonth() + 3);
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
+const RECOMMENDATIONS = [
+  {
+    href: "/benefits",
+    tag: "まずは乾杯！",
+    tagColor: "text-[#14b8a6]",
+    subtitle: "ドリンク1杯",
+    title: "無料クーポン",
+    titleColor: "text-[#14b8a6]",
+    bg: "bg-gradient-to-br from-[#ecfdf8] via-[#e4f9f3] to-[#d8f5ec]",
+    sparkle: "text-[#fbbf24]",
+    Art: RecCouponArt,
+  },
+  {
+    href: "/benefits",
+    tag: "貯めてお得！",
+    tagColor: "text-[#7c5cfc]",
+    subtitle: "来店でポイント",
+    title: "GET",
+    titleColor: "text-[#7c5cfc]",
+    bg: "bg-gradient-to-br from-[#f5f2ff] via-[#ede9fe] to-[#e8e2ff]",
+    sparkle: "text-[#c4b5fd]",
+    Art: RecCoinsArt,
+  },
+  {
+    href: "/benefits",
+    tag: "プレゼントも！",
+    tagColor: "text-[#f43f8e]",
+    subtitle: "ボトルを贈ると",
+    title: "特典GET",
+    titleColor: "text-[#f43f8e]",
+    bg: "bg-gradient-to-br from-[#fff1f5] via-[#ffe8f0] to-[#ffdce8]",
+    sparkle: "text-[#fda4af]",
+    Art: RecGiftArt,
+  },
+] as const;
+
+function NameScribble() {
+  return (
+    <svg
+      className="pointer-events-none absolute -bottom-1 left-0 h-2 w-[92%]"
+      viewBox="0 0 200 10"
+      fill="none"
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      <path
+        d="M2 7C30 3 55 8 82 5C108 2 132 8 158 4C174 2 188 6 198 5"
+        stroke="#FACC15"
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function visitsThisMonth(logs: { action: string; createdAt: string }[]) {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  return logs.filter((log) => {
+    if (log.action !== "consume" && log.action !== "gift") return false;
+    const d = new Date(log.createdAt);
+    return d.getFullYear() === y && d.getMonth() === m;
+  }).length;
 }
 
 export function HomeDashboard() {
-  const { stock, totalUnits } = useStock();
-  const { products, stores } = useMasterData();
+  const { stock, totalUnits, logs } = useStock();
   const [displayName, setDisplayName] = useState("ゲスト");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const bottleCount = stock.length;
 
-  const sorted = useMemo(
-    () => [...stock].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
-    [stock],
+  const monthVisits = useMemo(() => visitsThisMonth(logs), [logs]);
+  const points = useMemo(
+    () => monthVisits * 20 + bottleCount * 50 + totalUnits * 2,
+    [monthVisits, bottleCount, totalUnits],
   );
-  const stockByStore = useMemo(() => {
-    const grouped = sorted.reduce<Record<string, typeof sorted>>((acc, item) => {
-      if (!acc[item.storeId]) acc[item.storeId] = [];
-      acc[item.storeId].push(item);
-      return acc;
-    }, {});
-    return Object.entries(grouped).sort((a, b) => {
-      const aName = stores.find((s) => s.id === a[0])?.name ?? a[0];
-      const bName = stores.find((s) => s.id === b[0])?.name ?? b[0];
-      return aName.localeCompare(bName, "ja");
-    });
-  }, [sorted, stores]);
 
   useEffect(() => {
     let active = true;
-    async function loadDisplayName() {
+    async function loadProfile() {
       const supabase = createSupabaseBrowserClient();
       const {
         data: { user },
@@ -50,7 +106,7 @@ export function HomeDashboard() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, avatar_url")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -62,212 +118,183 @@ export function HomeDashboard() {
         user.email?.split("@")[0] ??
         "ユーザー";
       setDisplayName(name);
+      setAvatarUrl(profile?.avatar_url ?? null);
     }
 
-    loadDisplayName();
+    loadProfile();
     return () => {
       active = false;
     };
   }, []);
 
   return (
-    <div className="space-y-6 pb-4 pt-1">
-      <div>
-        <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--mb-ink)]">
-          <span className="block leading-snug">こんにちは、</span>
-          <span className="mt-1 block leading-snug">
-            <span className="bg-gradient-to-t from-[var(--mb-forest)] to-[#84cc16] bg-clip-text text-transparent">
-              {displayName}
-            </span>
-            さん
-          </span>
+    <div className="space-y-6 pb-2 pt-0.5">
+      <div className="space-y-2.5">
+        <p className="text-[0.9375rem] font-extrabold text-[#334155]">
+          やっほー！ <span aria-hidden>👋</span>
         </p>
-        <p className="mt-1 text-[0.8125rem] font-medium text-[var(--mb-forest-light)]">マイボトル</p>
+        <Link href="/mypage" className="flex items-center gap-2.5 transition active:opacity-80">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarUrl}
+              alt=""
+              className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-white"
+            />
+          ) : (
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#c4a882] text-sm font-extrabold text-white">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="relative inline-block pb-1">
+            <p className="text-[1.3rem] font-extrabold leading-tight tracking-[-0.02em] text-[#1e293b]">
+              {displayName}さん
+            </p>
+            <NameScribble />
+          </div>
+          <ChevronRight className="ml-auto h-5 w-5 shrink-0 text-[#cbd5e1]" strokeWidth={2.5} aria-hidden />
+        </Link>
       </div>
 
-      <section
-        className="relative isolate mb-14 mt-4 overflow-visible rounded-[var(--mb-radius-card)] px-5 pb-5 pt-4 sm:mb-16"
-        style={{
-          background:
-            "linear-gradient(90deg, #4c684f 0%, #41624a 10%, #355648 20%, #2f5244 22%, #2a4a3d 100%)",
-        }}
-      >
-        <div className="relative z-10 max-w-[min(100%,17rem)] pr-2 sm:max-w-[58%]">
-          <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-white/90 [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
-            登録ボトル
-          </p>
-          <div className="mt-2.5 flex items-end gap-2">
-            <p className="text-[2.25rem] font-semibold leading-none tracking-[-0.04em] text-white tabular-nums [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">
-              {bottleCount}
-            </p>
-            <span className="pb-1.5 text-sm font-medium text-white/95 [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
-              本
+      <section aria-label="マイボトル概要">
+        <div className="relative min-h-[10.75rem] overflow-hidden rounded-[1.5rem] shadow-[0_4px_24px_rgba(251,191,36,0.12)]">
+          <Image
+            src="/images/herocard.png"
+            alt=""
+            fill
+            priority
+            unoptimized
+            sizes="(max-width: 448px) 100vw, 408px"
+            className="object-cover object-center"
+            draggable={false}
+          />
+
+          <div className="relative z-10 px-5 pb-5 pt-4">
+            <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[0.625rem] font-extrabold text-[#0d9488] shadow-[0_1px_4px_rgba(15,23,42,0.06)]">
+              <Star className="h-3 w-3 fill-[#2dd4bf] text-[#2dd4bf]" aria-hidden />
+              マイボトル
             </span>
-          </div>
-          <div className="mt-3.5 h-px w-[11rem] max-w-full bg-white/35 sm:w-full" aria-hidden />
-          <p className="mt-3 text-[0.8125rem] font-medium text-white/95 [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
-            残量合計 <span className="font-semibold tabular-nums text-white">{totalUnits}</span> 杯
-          </p>
-        </div>
-        <div
-          className="pointer-events-none absolute bottom-0 -right-3 z-0 h-[175%] max-h-[15rem] min-h-[8.5rem] w-[52%] min-w-[8.25rem] max-w-[12.5rem] translate-x-1 translate-y-8 sm:-right-5 sm:h-[182%] sm:max-h-[16rem] sm:min-h-[9rem] sm:max-w-[13.5rem] sm:translate-x-2 sm:translate-y-10"
-          aria-hidden
-        >
-          <div className="relative h-full w-full">
-            <Image
-              src="/images/green-bottle.webp"
-              alt=""
-              fill
-              priority
-              sizes="(max-width: 448px) 48vw, 200px"
-              className="object-contain object-bottom"
-              draggable={false}
-            />
+
+            <div className="mt-3 max-w-[50%]">
+              <p className="text-[0.6875rem] font-bold text-[#94a3b8]">登録ボトル</p>
+              <div className="mt-0.5 flex items-end gap-0.5">
+                <span
+                  className="text-[3.25rem] font-black leading-none text-[#2dd4bf]"
+                  style={{
+                    WebkitTextStroke: "1.5px #0f766e",
+                    paintOrder: "stroke fill",
+                  }}
+                >
+                  {bottleCount}
+                </span>
+                <span className="pb-1.5 text-lg font-extrabold text-[#0f766e]">本</span>
+              </div>
+              <span className="mt-2 inline-flex items-center rounded-full bg-white px-3 py-1 text-[0.6875rem] font-extrabold text-[#0d9488] shadow-[0_1px_4px_rgba(15,23,42,0.06)]">
+                残り <span className="tabular-nums">{totalUnits}</span> 杯
+              </span>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="space-y-5">
-        {sorted.length === 0 ? (
-          <div className="mb-surface px-5 py-10 text-center">
-            <p className="text-sm font-medium text-[var(--mb-forest-light)]">まだボトルがありません。</p>
-            <Link
-              href="/add-bottle"
-              className="mt-4 inline-flex rounded-full bg-[var(--mb-accent)]/35 px-5 py-2.5 text-sm font-semibold text-[var(--mb-forest)] ring-1 ring-[var(--mb-accent-dark)]/25 active:opacity-80"
-            >
-              QRで追加する
-            </Link>
-          </div>
-        ) : (
-          <section className="space-y-6" aria-labelledby="home-bottles-by-store-heading">
-            <header className="space-y-2">
-              <h2 id="home-bottles-by-store-heading" className="mb-screen-title">
-                店舗別のマイボトル
-              </h2>
-              <p className="max-w-sm text-[0.8125rem] font-medium leading-relaxed text-[var(--mb-forest-light)]">
-                取扱店ごとに、登録中のボトルを分けて表示しています。
-              </p>
-            </header>
-            <div className="space-y-5">
-              {stockByStore.map(([storeId, items], storeIndex) => {
-                const storeName = stores.find((s) => s.id === storeId)?.name ?? "加盟店";
-                return (
-                  <section key={storeId} className="space-y-2 overflow-x-visible">
-                    <h3 className="overflow-x-visible text-[0.9375rem] font-semibold leading-snug tracking-[-0.02em] text-[var(--mb-ink)]">
-                      <span
-                        className="mb-store-name-underline"
-                        style={
-                          {
-                            "--mb-underline-delay": `${Math.min(storeIndex, 6) * 90}ms`,
-                          } as CSSProperties
-                        }
-                      >
-                        {storeName}
-                      </span>
-                    </h3>
-                    <HorizontalDragScroll>
-                      <div className="flex w-max gap-2.5">
-                        {items.map((item) => {
-                          const product = products.find((c) => c.id === item.productId);
-                          const max = product?.bundleSize ?? 5;
-                          const pct = Math.min(100, Math.round((item.remainingUnits / max) * 100));
-                          return (
-                            <Link
-                              key={`${item.storeId}-${item.productId}`}
-                              href={`/bottle/${item.storeId}/${item.productId}`}
-                              className="group mb-bottle-card-shell w-[8.9rem] shrink-0 snap-start select-none overflow-hidden rounded-[0.95rem] border border-[var(--mb-ring)] transition active:opacity-85"
-                            >
-                              <div className="mb-bottle-stage">
-                                <div className="mb-bottle-stage__bottle">
-                                  <BottleProductImage
-                                    key={`${item.storeId}-${item.productId}`}
-                                    productId={item.productId}
-                                    type={item.type}
-                                    frameClassName="h-[5.55rem] w-[5.55rem]"
-                                    fallbackEmojiClassName="text-2xl"
-                                    plain
-                                  />
-                                </div>
-                              </div>
-                              <div className="mb-bottle-card-foot space-y-1 px-2.5 py-2">
-                                <p className="line-clamp-1 text-[0.8rem] font-semibold tracking-[-0.01em] text-[var(--mb-ink)]">
-                                  {item.productName}
-                                </p>
-                                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[var(--mb-muted-strong)]">
-                                  <AnimatedLinearGauge
-                                    value={pct}
-                                    className="h-full rounded-full bg-[var(--mb-forest)]"
-                                  />
-                                </div>
-                                <p className="text-[10px] font-medium text-[var(--mb-forest-light)]">
-                                  残り {item.remainingUnits}
-                                  {item.unitLabel}
-                                </p>
-                                <p className="text-[10px] font-medium text-[var(--mb-forest-light)]">
-                                  有効期限 {expiryLabel(item.updatedAt)}
-                                </p>
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </HorizontalDragScroll>
-                  </section>
-                );
-              })}
-            </div>
-          </section>
-        )}
-      </div>
+      <section id="home-bottles" className="scroll-mt-20">
+        <HomeBottlesSection />
+      </section>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <section aria-label="クイックアクション" className="grid grid-cols-2 gap-2.5">
         <Link
           href="/add-bottle"
-          className="flex items-center justify-center rounded-full bg-[var(--mb-forest)] px-5 py-3.5 text-center text-[0.9375rem] font-semibold text-white shadow-sm active:opacity-90"
+          className="flex items-center justify-center gap-1.5 rounded-full bg-[#14b8a6] py-3.5 text-[0.8125rem] font-extrabold text-white shadow-[0_4px_14px_rgba(20,184,166,0.35)] transition active:scale-[0.98]"
         >
+          <Plus className="h-4 w-4" strokeWidth={2.75} aria-hidden />
           ボトルを追加
         </Link>
         <Link
           href="/products/step-1"
-          className="flex items-center justify-center rounded-full border border-[var(--mb-forest)]/25 bg-[var(--mb-card)] px-5 py-3.5 text-center text-[0.9375rem] font-semibold text-[var(--mb-forest)] ring-1 ring-[var(--mb-ring)] active:opacity-90"
+          className="flex items-center justify-center gap-1.5 rounded-full border-2 border-[#14b8a6] bg-white py-3.5 text-[0.8125rem] font-extrabold text-[#0d9488] shadow-sm transition active:scale-[0.98]"
         >
+          <ShoppingBag className="h-4 w-4" strokeWidth={2.5} aria-hidden />
           購入する
         </Link>
-      </div>
+      </section>
 
-      <section className="space-y-3" aria-labelledby="home-recommend-banner-heading">
-        <h2
-          id="home-recommend-banner-heading"
-          className="text-base font-semibold tracking-[-0.02em] text-[var(--mb-ink)]"
-        >
-          あなたへのおすすめ
-        </h2>
-        <Link
-          href="/stores"
-          className="relative block overflow-hidden rounded-[var(--mb-radius-card)] shadow-[var(--mb-shadow-card)] ring-1 ring-black/[0.08] transition active:opacity-90"
-        >
-          <div className="relative aspect-[5/3] min-h-[9.25rem] w-full sm:min-h-[10rem]">
-            <Image
-              src="/images/banner-bar.webp"
-              alt="店舗を探す"
-              fill
-              className="object-cover object-center"
-              sizes="(max-width: 448px) 100vw, 28rem"
-            />
-            <div
-              className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/5 sm:from-black/75 sm:via-black/35 sm:to-transparent"
-              aria-hidden
-            />
-            <div className="absolute inset-y-0 left-0 flex w-[min(100%,19rem)] flex-col justify-center px-5 py-4 sm:px-6">
-              <p className="text-[1.0625rem] font-bold leading-snug tracking-[-0.02em] text-white [text-shadow:0_1px_14px_rgba(0,0,0,0.45)]">
-                今夜はこの一杯で乾杯しませんか？
-              </p>
-              <p className="mt-2 text-[0.8125rem] font-medium leading-snug text-white/92 [text-shadow:0_1px_10px_rgba(0,0,0,0.35)]">
-                近くの人気店をチェック
-              </p>
+      <section aria-labelledby="home-recommend-heading">
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="home-recommend-heading" className="text-[0.9375rem] font-extrabold text-[#1e293b]">
+            おトクな特典
+          </h2>
+          <Link
+            href="/benefits"
+            className="flex shrink-0 items-center gap-0.5 text-[0.75rem] font-bold text-[#94a3b8] transition active:opacity-70"
+          >
+            すべて見る
+            <ChevronRight className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
+          </Link>
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {RECOMMENDATIONS.map((item) => {
+            const Art = item.Art;
+            return (
+              <Link
+                key={item.tag}
+                href={item.href}
+                className={`relative flex min-w-0 flex-col overflow-hidden rounded-[1.1rem] ${item.bg} p-2.5 shadow-[0_2px_12px_rgba(15,23,42,0.06)] ring-1 ring-white/90 transition active:scale-[0.97]`}
+              >
+                <span
+                  className={`pointer-events-none absolute right-1.5 top-1.5 text-[0.5rem] leading-none ${item.sparkle}`}
+                  aria-hidden
+                >
+                  ✦
+                </span>
+
+                <span
+                  className={`inline-flex w-fit max-w-full truncate rounded-full bg-white px-1.5 py-0.5 text-[0.5625rem] font-extrabold shadow-[0_1px_3px_rgba(15,23,42,0.05)] ${item.tagColor}`}
+                >
+                  {item.tag}
+                </span>
+
+                <p className="mt-1.5 text-[0.5625rem] font-bold leading-tight text-[#64748b]">{item.subtitle}</p>
+                <p
+                  className={`mt-0.5 text-[0.8125rem] font-extrabold leading-tight tracking-[-0.02em] ${item.titleColor}`}
+                >
+                  {item.title}
+                </p>
+
+                <div className="mt-2 flex items-end justify-between gap-1">
+                  <Art className="h-10 w-10 shrink-0" />
+                  <span
+                    className="mb-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#1e293b] text-white shadow-[0_2px_6px_rgba(15,23,42,0.18)]"
+                    aria-hidden
+                  >
+                    <ChevronRight className="h-3 w-3" strokeWidth={2.75} />
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      <section
+        aria-label="ステータス"
+        className="grid grid-cols-4 divide-x divide-[#e8ecf0] overflow-hidden rounded-[1.15rem] border border-[#e8ecf0] bg-white shadow-[0_2px_10px_rgba(15,23,42,0.04)]"
+      >
+        {[
+          { icon: Calendar, iconClass: "text-[#eab308]", label: "今月の来店回数", value: `${monthVisits}回` },
+          { icon: TrendingUp, iconClass: "text-[#22c55e]", label: "累計ボトル数", value: `${bottleCount}本` },
+          { icon: Crown, iconClass: "text-[#3b82f6]", label: "ランク", value: "ブロンズ" },
+          { icon: Star, iconClass: "text-[#f472b6]", label: "ポイント", value: `${points}pt` },
+        ].map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div key={stat.label} className="flex flex-col items-center px-1 py-3.5 text-center">
+              <Icon className={`h-4 w-4 ${stat.iconClass}`} strokeWidth={2.25} aria-hidden />
+              <p className="mt-1.5 text-[0.5rem] font-bold leading-tight text-[#94a3b8]">{stat.label}</p>
+              <p className="mt-0.5 text-[0.7rem] font-extrabold text-[#1e293b]">{stat.value}</p>
             </div>
-          </div>
-        </Link>
+          );
+        })}
       </section>
     </div>
   );
