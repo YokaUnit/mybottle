@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { Beer } from "lucide-react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { History, Sparkles } from "lucide-react";
+import { AnimatedCircularGauge } from "@/components/mybottle/animated-circular-gauge";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
 import { useStock } from "@/components/mybottle/stock-provider";
 import { useMasterData } from "@/components/mybottle/master-data-provider";
@@ -22,7 +23,7 @@ function expiryLabel(updatedAt: string) {
 export function BottleDetailClient({ storeId, productId }: Props) {
   const router = useRouter();
   const { stock, logs, removeBottle } = useStock();
-  const { stores } = useMasterData();
+  const { stores, products } = useMasterData();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
@@ -53,6 +54,9 @@ export function BottleDetailClient({ storeId, productId }: Props) {
   }
 
   const storeName = stores.find((s) => s.id === item.storeId)?.name ?? "加盟店";
+  const product = products.find((p) => p.id === productId);
+  const maxUnits = product?.bundleSize ?? 10;
+  const stockPct = Math.min(100, Math.round((item.remainingUnits / maxUnits) * 100));
   const daysLeft = Math.max(
     0,
     Math.ceil((new Date(expiryLabel(item.updatedAt)).getTime() - now) / 86400000),
@@ -60,43 +64,47 @@ export function BottleDetailClient({ storeId, productId }: Props) {
 
   return (
     <>
-      <div className="space-y-4 pb-4">
-        <div className="mb-surface flex flex-col items-center px-5 py-8">
-          <div className="mb-bottle-stage mb-bottle-stage--hero">
-            <div className="mb-bottle-stage__bottle flex justify-center">
+      <div className="mb-bottle-detail-page">
+        <article className="mb-bottle-detail-card mb-bottle-detail-enter mb-bottle-detail-enter--1 overflow-hidden rounded-[1.05rem] border border-[#e2e8f0]/80 bg-white shadow-[0_4px_14px_rgba(15,23,42,0.07)]">
+          <div className="mb-bottle-stage mb-bottle-stage--pop mb-bottle-stage--detail-hero">
+            <div className="mb-bottle-stage__bottle">
               <BottleProductImage
                 key={item.productId}
                 productId={item.productId}
                 type={item.type}
-                frameClassName="h-40 w-32"
+                frameClassName="h-36 w-28"
                 fallbackEmojiClassName="text-6xl"
                 plain
               />
             </div>
           </div>
-          <h1 className="mt-5 text-center text-[1.35rem] font-extrabold tracking-[-0.03em] text-[var(--mb-ink)]">
-            {item.productName}
-          </h1>
-          <p className="mt-1 text-sm font-bold text-[var(--mb-forest-light)]">{storeName}</p>
-        </div>
+          <div className="mb-bottle-card-foot mb-bottle-detail-card__foot">
+            <h1 className="mb-bottle-detail-hero__title">{item.productName}</h1>
+            <p className="mb-bottle-detail-hero__store">{storeName}</p>
+          </div>
+        </article>
 
-        <div className="mb-pop-card mb-pop-card--yellow rounded-[1.25rem] px-5 py-6 text-center shadow-[0_8px_24px_rgba(234,179,8,0.25)]">
-          <p className="text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-[#92400e]/75">残量</p>
-          <p className="mt-2 text-[2.75rem] font-extrabold leading-none tracking-[-0.04em] text-red-600 tabular-nums">
-            残り {item.remainingUnits}
-            <span className="text-xl">{item.unitLabel}</span>
-          </p>
-          <p className="mt-3 text-sm font-bold text-[#78350f]">
+        <div className="mb-bottle-detail-stock mb-bottle-detail-enter mb-bottle-detail-enter--2">
+          <div className="mb-bottle-detail-stock__ring">
+            <AnimatedCircularGauge
+              value={stockPct}
+              centerText={`${item.remainingUnits}${item.unitLabel}`}
+              caption="残量"
+              className="mb-bottle-detail-gauge"
+            />
+          </div>
+          <p className="mb-bottle-detail-stock__meta">
             有効期限 {expiryLabel(item.updatedAt)}
-            <span className="text-[var(--mb-forest-light)]"> · あと約 {daysLeft} 日</span>
+            <span> · あと約 {daysLeft} 日</span>
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="mb-bottle-detail-actions mb-bottle-detail-enter mb-bottle-detail-enter--3">
           <Link
             href={`/consume/step-1?storeId=${storeId}&productId=${productId}`}
             className="mb-btn-primary w-full py-3.5 text-sm"
           >
+            <Sparkles className="h-4 w-4" strokeWidth={2.25} aria-hidden />
             使用する
           </Link>
           <Link
@@ -107,24 +115,25 @@ export function BottleDetailClient({ storeId, productId }: Props) {
           </Link>
         </div>
 
-        <section className="mb-surface p-5">
-          <h2 className="flex items-center gap-2 text-sm font-extrabold text-[var(--mb-ink)]">
-            <Beer className="h-4 w-4 text-[var(--mb-teal-dark)]" strokeWidth={2.5} aria-hidden />
+        <section className="mb-surface mb-bottle-detail-history mb-bottle-detail-enter mb-bottle-detail-enter--4">
+          <h2 className="mb-bottle-detail-history__title">
+            <History className="h-4 w-4 text-[#14b8a6]" strokeWidth={2.25} aria-hidden />
             利用履歴
           </h2>
-          <ul className="mt-4 space-y-0 text-sm">
+          <ul className="mb-bottle-detail-history__list">
             {productLogs.length === 0 ? (
-              <li className="py-2 font-medium text-[var(--mb-forest-light)]">履歴はまだありません</li>
+              <li className="py-2 text-sm font-medium text-[#94a3b8]">履歴はまだありません</li>
             ) : (
-              productLogs.map((log) => (
+              productLogs.map((log, index) => (
                 <li
                   key={log.id}
-                  className="flex items-center justify-between gap-3 border-b border-[var(--mb-muted-strong)] py-3 last:border-0"
+                  className="mb-bottle-detail-history__row"
+                  style={{ "--mb-row-delay": `${index * 55}ms` } as CSSProperties}
                 >
-                  <span className="text-xs font-bold text-[var(--mb-forest-light)]">
+                  <span className="mb-bottle-detail-history__date">
                     {new Date(log.createdAt).toLocaleDateString("ja-JP")}
                   </span>
-                  <span className="font-extrabold text-[var(--mb-teal-dark)]">
+                  <span className="mb-bottle-detail-history__amount">
                     -{log.units}
                     {log.unitLabel}
                   </span>
@@ -134,13 +143,16 @@ export function BottleDetailClient({ storeId, productId }: Props) {
           </ul>
         </section>
 
-        <Link href="/bottles" className="mb-btn-secondary w-full py-3.5 text-sm">
+        <Link
+          href="/bottles"
+          className="mb-btn-secondary mb-bottle-detail-enter mb-bottle-detail-enter--5 w-full py-3.5 text-sm"
+        >
           一覧へ戻る
         </Link>
 
         <button
           type="button"
-          className="w-full rounded-full border-2 border-red-200 bg-red-50 py-3.5 text-center text-sm font-extrabold text-red-600 transition active:opacity-90"
+          className="mb-bottle-detail-delete mb-bottle-detail-enter mb-bottle-detail-enter--5"
           onClick={() => setConfirmDelete(true)}
         >
           このボトルを削除

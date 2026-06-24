@@ -169,13 +169,15 @@ export function HomeDashboard() {
             draggable={false}
           />
 
-          <div className="relative z-10 px-5 pb-5 pt-4">
-            <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[0.625rem] font-extrabold text-[#0d9488] shadow-[0_1px_4px_rgba(15,23,42,0.06)]">
-              <Star className="h-3 w-3 fill-[#2dd4bf] text-[#2dd4bf]" aria-hidden />
+          <div className="mb-home-ribbon">
+            <span className="mb-home-ribbon__inner">
+              <Star className="mb-home-ribbon__star" aria-hidden />
               マイボトル
             </span>
+          </div>
 
-            <div className="mt-3 max-w-[50%]">
+          <div className="relative z-10 px-5 pb-5 pt-9">
+            <div className="max-w-[50%]">
               <p className="text-[0.6875rem] font-bold text-[#94a3b8]">登録ボトル</p>
               <div className="mt-0.5 flex items-end gap-0.5">
                 <span

@@ -7,9 +7,15 @@ type Props = {
   value: number;
   centerText?: string;
   caption?: string;
+  className?: string;
 };
 
-export function AnimatedCircularGauge({ value, centerText, caption = "残量" }: Props) {
+export function AnimatedCircularGauge({
+  value,
+  centerText,
+  caption = "残量",
+  className,
+}: Props) {
   const reducedMotion = useReducedMotion();
   const progress = useMotionValue(0);
   const clamped = Math.max(0, Math.min(100, value));
@@ -35,7 +41,7 @@ export function AnimatedCircularGauge({ value, centerText, caption = "残量" }:
 
   return (
     <motion.div
-      className="relative grid h-36 w-36 place-items-center rounded-full border-4 border-[var(--mb-forest)]"
+      className={`relative grid h-36 w-36 place-items-center rounded-full border-4 border-[var(--mb-forest)] ${className ?? ""}`}
       style={{ background }}
     >
       <div className="grid h-28 w-28 place-items-center rounded-full bg-[var(--mb-card)] text-center">

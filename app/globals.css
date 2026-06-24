@@ -30,6 +30,7 @@
   --mb-shadow-card: 0 2px 8px rgba(15, 23, 42, 0.06), 0 12px 32px rgba(15, 23, 42, 0.08);
   --mb-shadow-pop: 0 4px 14px rgba(15, 23, 42, 0.1);
   --mb-shell-blur: 16px;
+  --mb-shell-bg: #f8fafc;
   --mb-bottle-card-cream: #fffbeb;
   --mb-bottle-card-shadow: 0 2px 6px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08);
 }
@@ -398,6 +399,216 @@ canvas {
   align-self: center;
 }
 
+/* ボトル詳細：ホームのボトルカードと同系統 */
+.mb-bottle-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mb-bottle-stage--detail-hero {
+  --mb-stage-min-h: 11.5rem;
+  --mb-stage-py: 0.7rem;
+  --mb-stage-px: 0.75rem;
+  --mb-stage-pb: 0.5rem;
+  width: 100%;
+}
+
+.mb-bottle-detail-card__foot {
+  padding: 1rem 1.25rem 1.125rem;
+  text-align: center;
+}
+
+.mb-bottle-detail-hero__title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #334155;
+}
+
+.mb-bottle-detail-hero__store {
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.mb-bottle-detail-stock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 1.25rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 1.25rem 1.25rem 1.125rem;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+.mb-bottle-detail-stock__ring {
+  display: flex;
+  justify-content: center;
+}
+
+.mb-bottle-detail-gauge {
+  height: 9.25rem;
+  width: 9.25rem;
+  border-width: 3px;
+  border-color: #14b8a6;
+}
+
+.mb-bottle-detail-gauge > div {
+  height: 7.375rem;
+  width: 7.375rem;
+}
+
+.mb-bottle-detail-gauge .text-2xl {
+  font-size: 1.625rem;
+  font-weight: 800;
+  color: #0f766e;
+}
+
+.mb-bottle-detail-gauge div > p:last-child {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.mb-bottle-detail-stock__meta {
+  margin-top: 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.mb-bottle-detail-stock__meta span {
+  color: #94a3b8;
+}
+
+.mb-bottle-detail-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.mb-bottle-detail-actions .mb-btn-primary {
+  box-shadow: 0 6px 18px rgba(20, 184, 166, 0.38);
+}
+
+.mb-bottle-detail-history {
+  padding: 1.125rem 1.25rem 0.375rem;
+  border: 1px solid rgba(20, 184, 166, 0.1);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fffe 100%);
+}
+
+.mb-bottle-detail-history__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--mb-ink);
+}
+
+.mb-bottle-detail-history__list {
+  margin-top: 0.75rem;
+}
+
+.mb-bottle-detail-history__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid #ecfdf5;
+  padding: 0.75rem 0;
+  font-size: 0.8125rem;
+  animation: mb-detail-row-in 0.45s cubic-bezier(0.22, 0.95, 0.31, 1) both;
+  animation-delay: var(--mb-row-delay, 0ms);
+}
+
+.mb-bottle-detail-history__row:last-child {
+  border-bottom: 0;
+}
+
+.mb-bottle-detail-history__date {
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.mb-bottle-detail-history__amount {
+  font-weight: 800;
+  color: #0d9488;
+}
+
+.mb-bottle-detail-delete {
+  width: 100%;
+  border-radius: var(--mb-radius-pill);
+  border: 1.5px solid #fecaca;
+  background: #ffffff;
+  padding: 0.8125rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #dc2626;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.mb-bottle-detail-delete:active {
+  transform: scale(0.98);
+  background: #fef2f2;
+}
+
+.mb-bottle-detail-enter {
+  animation: mb-detail-pop-in 0.52s cubic-bezier(0.22, 0.95, 0.31, 1) both;
+}
+
+.mb-bottle-detail-enter--1 {
+  animation-delay: 0.03s;
+}
+.mb-bottle-detail-enter--2 {
+  animation-delay: 0.1s;
+}
+.mb-bottle-detail-enter--3 {
+  animation-delay: 0.16s;
+}
+.mb-bottle-detail-enter--4 {
+  animation-delay: 0.22s;
+}
+.mb-bottle-detail-enter--5 {
+  animation-delay: 0.28s;
+}
+
+@keyframes mb-detail-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mb-detail-row-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mb-bottle-detail-enter,
+  .mb-bottle-detail-history__row {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes mb-sheen {
   0% {
     transform: translateX(-130%);
@@ -615,6 +826,37 @@ body.mb-post-login-boot-lock::after {
   line-height: 1;
 }
 
+.mb-home-ribbon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.mb-home-ribbon__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.9375rem 0.5625rem;
+  background: #ffffff;
+  border-radius: 0 0 0.625rem 0.625rem;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  font-size: 0.625rem;
+  font-weight: 800;
+  color: #0d9488;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  transform: none;
+}
+
+.mb-home-ribbon__star {
+  width: 0.6875rem;
+  height: 0.6875rem;
+  fill: #2dd4bf;
+  color: #2dd4bf;
+}
+
 .mb-home-hero-card {
   position: relative;
   overflow: visible;
@@ -763,4 +1005,58 @@ body.mb-post-login-boot-lock::after {
   border-radius: 1.1rem;
   background: var(--mb-muted);
   padding: 0.55rem;
+}
+
+/* Login page — 開幕ポップ */
+@keyframes mb-login-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mb-login-bottle-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.mb-login-enter {
+  animation: mb-login-rise 0.55s cubic-bezier(0.22, 0.95, 0.31, 1) both;
+}
+
+.mb-login-enter--1 {
+  animation-delay: 0.04s;
+}
+.mb-login-enter--2 {
+  animation-delay: 0.1s;
+}
+.mb-login-enter--3 {
+  animation-delay: 0.18s;
+}
+.mb-login-enter--4 {
+  animation-delay: 0.26s;
+}
+
+.mb-login-bottle-bob {
+  animation:
+    mb-login-rise 0.55s cubic-bezier(0.22, 0.95, 0.31, 1) 0.1s both,
+    mb-login-bottle-bob 3.2s ease-in-out 0.75s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mb-login-enter,
+  .mb-login-bottle-bob {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
