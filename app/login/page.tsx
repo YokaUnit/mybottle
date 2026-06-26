@@ -155,13 +155,13 @@ export default function LoginPage() {
             <p className="mb-login-subtext">
               <span className="block">お気に入りのボトルを、</span>
               <span className="block">
-                アプリで
+                スマホで
                 <span className="font-extrabold text-[#14b8a6]">かんたん管理</span>。
               </span>
-              <span className="mb-login-subtext__gap block">お店でも、</span>
+              <span className="mb-login-subtext__gap block">いつものお店を、</span>
               <span className="block">
-                <span className="font-extrabold text-[#14b8a6]">いつもの一杯</span>
-                を。
+                <span className="font-extrabold text-[#14b8a6]">もっと身近に</span>
+                。
               </span>
             </p>
           </div>

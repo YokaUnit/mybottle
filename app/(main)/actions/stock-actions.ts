@@ -110,12 +110,17 @@ export async function purchaseAction(input: {
   productId: string;
   paymentMethod: PaymentMethod;
   quantitySets?: number;
+  staffPin?: string;
 }) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   const userId = requireUserId(user?.id);
+
+  const { assertStoreStaffPinValid } = await import("@/lib/store-manage/purchase-pin");
+  await assertStoreStaffPinValid(input.storeId, input.staffPin);
+
   const product = await getProduct(input.productId);
   if (!product) throw new Error("商品が見つかりません");
   const quantitySets = Math.max(1, Math.floor(input.quantitySets ?? 1));

@@ -34,6 +34,7 @@ type StockContextValue = {
     productId: string;
     paymentMethod: PaymentMethod;
     quantitySets?: number;
+    staffPin?: string;
   }) => Promise<void>;
   consume: (params: { storeId: string; productId: string; units?: number }) => Promise<boolean>;
   giftOne: (params: { storeId: string; productId: string; friendName: string }) => Promise<boolean>;
@@ -136,13 +137,15 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
       productId,
       paymentMethod,
       quantitySets,
+      staffPin,
     }: {
       storeId: string;
       productId: string;
       paymentMethod: PaymentMethod;
       quantitySets?: number;
+      staffPin?: string;
     }) => {
-      await purchaseAction({ storeId, productId, paymentMethod, quantitySets });
+      await purchaseAction({ storeId, productId, paymentMethod, quantitySets, staffPin });
       await refreshState();
     },
     [refreshState],

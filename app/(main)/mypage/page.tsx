@@ -9,7 +9,9 @@ import {
   UserRound,
 } from "lucide-react";
 import { LogoutButton } from "@/components/mybottle/logout-button";
+import { MyPageOperationsSection } from "@/components/mybottle/mypage-operations-section";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { AppRole } from "@/lib/auth/roles";
 
 const menuItems = [
   { href: "/bottles", label: "ボトル一覧", Icon: Beer },
@@ -36,9 +38,8 @@ export default async function MyPage() {
   const displayName = profile?.display_name ?? user?.user_metadata?.name ?? "未設定";
   const email = profile?.email ?? user?.email ?? "メール未設定";
   const handle = email.includes("@") ? `@${email.split("@")[0]}` : "@user";
-  const role = profile?.role === "admin" || profile?.role === "staff" ? profile.role : "user";
-  const canUseDashboard = role === "staff" || role === "admin";
-  const isAdmin = role === "admin";
+  const role: AppRole =
+    profile?.role === "admin" || profile?.role === "staff" ? profile.role : "user";
 
   return (
     <main className="space-y-5 pb-4 pt-2">
@@ -85,16 +86,7 @@ export default async function MyPage() {
         <LogoutButton />
       </nav>
 
-      {canUseDashboard ? (
-        <Link href="/dashboard" className="block text-center text-xs font-bold text-[var(--mb-forest-light)]">
-          店舗向けダッシュボード（運営）
-        </Link>
-      ) : null}
-      {isAdmin ? (
-        <Link href="/admin" className="block text-center text-xs font-extrabold text-[var(--mb-teal-dark)]">
-          管理者ページへ
-        </Link>
-      ) : null}
+      <MyPageOperationsSection role={role} />
     </main>
   );
 }

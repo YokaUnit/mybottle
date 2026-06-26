@@ -156,8 +156,8 @@ export function HomeDashboard() {
         </Link>
       </div>
 
-      <section aria-label="マイボトル概要">
-        <div className="relative min-h-[10.75rem] overflow-hidden rounded-[1.5rem] shadow-[0_4px_24px_rgba(251,191,36,0.12)]">
+      <section aria-label="マイボトル概要" className="mb-home-hero">
+        <div className="mb-home-hero__surface">
           <Image
             src="/images/herocard.png"
             alt=""
@@ -165,36 +165,20 @@ export function HomeDashboard() {
             priority
             unoptimized
             sizes="(max-width: 448px) 100vw, 408px"
-            className="object-cover object-center"
+            className="mb-home-hero__image"
             draggable={false}
           />
-
-          <div className="mb-home-ribbon">
-            <span className="mb-home-ribbon__inner">
-              <Star className="mb-home-ribbon__star" aria-hidden />
-              マイボトル
-            </span>
-          </div>
-
-          <div className="relative z-10 px-5 pb-5 pt-9">
-            <div className="max-w-[50%]">
-              <p className="text-[0.6875rem] font-bold text-[#94a3b8]">登録ボトル</p>
-              <div className="mt-0.5 flex items-end gap-0.5">
-                <span
-                  className="text-[3.25rem] font-black leading-none text-[#2dd4bf]"
-                  style={{
-                    WebkitTextStroke: "1.5px #0f766e",
-                    paintOrder: "stroke fill",
-                  }}
-                >
-                  {bottleCount}
-                </span>
-                <span className="pb-1.5 text-lg font-extrabold text-[#0f766e]">本</span>
-              </div>
-              <span className="mt-2 inline-flex items-center rounded-full bg-white px-3 py-1 text-[0.6875rem] font-extrabold text-[#0d9488] shadow-[0_1px_4px_rgba(15,23,42,0.06)]">
-                残り <span className="tabular-nums">{totalUnits}</span> 杯
-              </span>
+          <div className="mb-home-hero__scrim" aria-hidden />
+          <div className="mb-home-hero__content">
+            <span className="mb-home-hero__label">マイボトル</span>
+            <p className="mb-home-hero__caption">登録ボトル</p>
+            <div className="mb-home-hero__metric" aria-label={`登録ボトル ${bottleCount} 本`}>
+              <span className="mb-home-hero__number tabular-nums">{bottleCount}</span>
+              <span className="mb-home-hero__unit">本</span>
             </div>
+            <p className="mb-home-hero__remaining">
+              残り <span className="tabular-nums">{totalUnits}</span> 杯
+            </p>
           </div>
         </div>
       </section>

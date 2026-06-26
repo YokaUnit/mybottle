@@ -14,6 +14,19 @@ export type Product = {
   imagePath?: string | null;
 };
 
+/** 店舗別の販売情報（ユーザー購入フロー用） */
+export type StoreProductOffering = Product & {
+  storeProductRowId: string;
+  storeId: string;
+  regularPriceJpy: number;
+  mybottlePriceJpy: number;
+  minPurchaseSets: number;
+  maxPurchaseSets: number | null;
+  validityDays: number;
+  isSelling: boolean;
+  isSoldOut: boolean;
+};
+
 export type Store = {
   id: string;
   name: string;

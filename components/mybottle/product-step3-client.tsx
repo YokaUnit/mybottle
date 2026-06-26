@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
-import type { Product } from "@/lib/mybottle/types";
+import type { StoreProductOffering } from "@/lib/mybottle/types";
 
 type Props = {
   storeId: string;
-  product: Product;
+  product: StoreProductOffering;
   initialQuantity?: number;
 };
 
@@ -20,13 +20,15 @@ function formatJpy(value: number) {
   }).format(value);
 }
 
-export function ProductStep3Client({ storeId, product, initialQuantity = 1 }: Props) {
-  const [quantity, setQuantity] = useState(initialQuantity);
+export function ProductStep3Client({ storeId, product, initialQuantity }: Props) {
+  const minQ = product.minPurchaseSets;
+  const maxQ = product.maxPurchaseSets ?? 10;
+  const [quantity, setQuantity] = useState(initialQuantity ?? minQ);
   const totalUnits = product.bundleSize * quantity;
-  const totalPrice = product.priceJpy * quantity;
+  const totalPrice = product.mybottlePriceJpy * quantity;
   const unitPrice = useMemo(
-    () => Math.round(product.priceJpy / product.bundleSize),
-    [product.priceJpy, product.bundleSize],
+    () => Math.round(product.mybottlePriceJpy / product.bundleSize),
+    [product.mybottlePriceJpy, product.bundleSize],
   );
 
   return (
@@ -46,6 +48,10 @@ export function ProductStep3Client({ storeId, product, initialQuantity = 1 }: Pr
         </div>
         <p className="mt-4 text-lg font-extrabold text-[var(--mb-ink)]">{product.name}</p>
         <p className="mt-1 text-sm font-medium text-[var(--mb-forest-light)]">{product.description}</p>
+        <p className="mt-2 text-xs font-bold text-[#64748b]">
+          通常 {formatJpy(product.regularPriceJpy)} → mybottle {formatJpy(product.mybottlePriceJpy)}
+        </p>
+        <p className="mt-1 text-xs font-medium text-[#94a3b8]">有効期限: 購入から {product.validityDays} 日</p>
       </div>
 
       <div className="rounded-[1rem] border-2 border-[var(--mb-muted-strong)] bg-white p-5">
@@ -54,7 +60,7 @@ export function ProductStep3Client({ storeId, product, initialQuantity = 1 }: Pr
           <button
             type="button"
             className="grid h-12 w-12 place-items-center rounded-full border-2 border-[var(--mb-teal)] bg-white text-[var(--mb-teal-dark)] transition active:scale-95"
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            onClick={() => setQuantity((q) => Math.max(minQ, q - 1))}
             aria-label="1セット減らす"
           >
             <Minus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
@@ -65,7 +71,7 @@ export function ProductStep3Client({ storeId, product, initialQuantity = 1 }: Pr
           <button
             type="button"
             className="grid h-12 w-12 place-items-center rounded-full bg-[var(--mb-teal)] text-white shadow-[0_3px_10px_rgba(13,148,136,0.35)] transition active:scale-95"
-            onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+            onClick={() => setQuantity((q) => Math.min(maxQ, q + 1))}
             aria-label="1セット増やす"
           >
             <Plus className="h-5 w-5" strokeWidth={2.5} aria-hidden />

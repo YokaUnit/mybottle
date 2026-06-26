@@ -1,8 +1,8 @@
 import { MobileStepHeader } from "@/components/mybottle/mobile-step-header";
 import { PurchaseProductRow } from "@/components/mybottle/purchase-product-row";
 import { HorizontalDragScroll } from "@/components/mybottle/horizontal-drag-scroll";
-import { getMasterData } from "@/lib/supabase/mybottle";
-import type { Product } from "@/lib/mybottle/types";
+import { getMasterData, getStoreProductCatalog } from "@/lib/supabase/mybottle";
+import type { StoreProductOffering } from "@/lib/mybottle/types";
 
 type Props = {
   searchParams: Promise<{ storeId?: string }>;
@@ -11,10 +11,10 @@ type Props = {
 export default async function ProductStep2Page({ searchParams }: Props) {
   const params = await searchParams;
   const storeId = params.storeId ?? "chigasaki-a";
-  const { products, stores } = await getMasterData();
+  const [{ stores }, catalog] = await Promise.all([getMasterData(), getStoreProductCatalog(storeId)]);
   const storeName = stores.find((store) => store.id === storeId)?.name ?? "加盟店";
   const categoryOrder = ["ビール", "焼酎", "ハイボール", "サワー", "ジン", "カクテル", "ワイン"] as const;
-  const groupedProducts = products.reduce<Record<string, Product[]>>((acc, product) => {
+  const groupedProducts = catalog.reduce<Record<string, StoreProductOffering[]>>((acc, product) => {
     const category = product.category || "その他";
     if (!acc[category]) acc[category] = [];
     acc[category].push(product);
@@ -40,20 +40,26 @@ export default async function ProductStep2Page({ searchParams }: Props) {
         <p className="text-sm font-bold text-[var(--mb-forest-light)]">
           飲みたい種類を選ぶと、次の画面でセット数（何セット買うか）を決められます。
         </p>
-        {orderedCategories.map((category) => (
-          <section key={category} className="space-y-2">
-            <h2 className="text-[0.82rem] font-extrabold uppercase tracking-[0.1em] text-[var(--mb-teal-dark)]">
-              {category}
-            </h2>
-            <HorizontalDragScroll>
-              <div className="flex w-max gap-2.5">
-                {groupedProducts[category].map((product) => (
-                  <PurchaseProductRow key={product.id} storeId={storeId} product={product} />
-                ))}
-              </div>
-            </HorizontalDragScroll>
-          </section>
-        ))}
+        {catalog.length === 0 ? (
+          <p className="rounded-xl bg-[var(--mb-muted)] p-4 text-center text-sm font-bold text-[var(--mb-forest-light)]">
+            現在この店舗で購入できるボトルがありません。
+          </p>
+        ) : (
+          orderedCategories.map((category) => (
+            <section key={category} className="space-y-2">
+              <h2 className="text-[0.82rem] font-extrabold uppercase tracking-[0.1em] text-[var(--mb-teal-dark)]">
+                {category}
+              </h2>
+              <HorizontalDragScroll>
+                <div className="flex w-max gap-2.5">
+                  {groupedProducts[category].map((product) => (
+                    <PurchaseProductRow key={product.id} storeId={storeId} product={product} />
+                  ))}
+                </div>
+              </HorizontalDragScroll>
+            </section>
+          ))
+        )}
       </section>
     </main>
   );

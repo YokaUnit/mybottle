@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Product, ProductType, Store } from "@/lib/mybottle/types";
+import { Product, ProductType, Store, StoreProductOffering } from "@/lib/mybottle/types";
 
 export type StoreUiMeta = {
   imageSrc: string;
@@ -87,9 +87,60 @@ type ProductRow = {
 };
 
 type StoreProductJoinedRow = {
+  id: string;
+  store_id: string;
+  regular_price_jpy: number;
   current_price_jpy: number;
+  min_purchase_sets: number;
+  max_purchase_sets: number | null;
+  validity_days: number;
+  is_selling: boolean;
+  is_sold_out: boolean;
+  is_active: boolean;
   products: ProductRow | ProductRow[] | null;
 };
+
+function mapStoreProductOffering(row: StoreProductJoinedRow): StoreProductOffering | null {
+  const productRaw = Array.isArray(row.products) ? row.products[0] : row.products;
+  if (!productRaw || !productRaw.is_active) return null;
+  const base = mapProduct(productRaw);
+  return {
+    ...base,
+    priceJpy: row.current_price_jpy,
+    storeProductRowId: row.id,
+    storeId: row.store_id,
+    regularPriceJpy: row.regular_price_jpy,
+    mybottlePriceJpy: row.current_price_jpy,
+    minPurchaseSets: row.min_purchase_sets,
+    maxPurchaseSets: row.max_purchase_sets,
+    validityDays: row.validity_days,
+    isSelling: row.is_selling,
+    isSoldOut: row.is_sold_out,
+  };
+}
+
+export const getStoreProductCatalog = cache(async (storeId: string): Promise<StoreProductOffering[]> => {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("store_products")
+    .select(
+      "id,store_id,regular_price_jpy,current_price_jpy,min_purchase_sets,max_purchase_sets,validity_days,is_selling,is_sold_out,is_active,products!inner(id,name,type,category,unit_label,bundle_size,price_jpy,description,image_path,is_active)",
+    )
+    .eq("store_id", storeId)
+    .eq("is_active", true)
+    .eq("is_selling", true)
+    .order("current_price_jpy");
+
+  if (error) {
+    console.error("[getStoreProductCatalog]", error.message);
+    return [];
+  }
+
+  return (data ?? []).flatMap((row) => {
+    const mapped = mapStoreProductOffering(row as StoreProductJoinedRow);
+    return mapped ? [mapped] : [];
+  });
+});
 
 type StoreUiRow = {
   store_id: string;
@@ -160,9 +211,13 @@ export const getStoreDetailById = cache(async (storeId: string): Promise<StoreDe
     supabase.from("store_ui_meta").select("*").eq("store_id", storeId).maybeSingle(),
     supabase
       .from("store_products")
-      .select("current_price_jpy,products!inner(id,name,type,category,unit_label,bundle_size,price_jpy,description,is_active)")
+      .select(
+        "id,store_id,regular_price_jpy,current_price_jpy,min_purchase_sets,max_purchase_sets,validity_days,is_selling,is_sold_out,is_active,products!inner(id,name,type,category,unit_label,bundle_size,price_jpy,description,image_path,is_active)",
+      )
       .eq("store_id", storeId)
       .eq("is_active", true)
+      .eq("is_selling", true)
+      .eq("is_sold_out", false)
       .order("current_price_jpy")
       .limit(3),
   ]);
@@ -178,15 +233,8 @@ export const getStoreDetailById = cache(async (storeId: string): Promise<StoreDe
   }
 
   const heroProducts: Product[] = (productsRes.data ?? []).flatMap((row) => {
-    const typed = row as StoreProductJoinedRow;
-    const productRaw = Array.isArray(typed.products) ? typed.products[0] : typed.products;
-    if (!productRaw) return [];
-    return [
-      mapProduct({
-        ...productRaw,
-        price_jpy: typed.current_price_jpy,
-      }),
-    ];
+    const offering = mapStoreProductOffering(row as StoreProductJoinedRow);
+    return offering ? [offering] : [];
   });
 
   return {

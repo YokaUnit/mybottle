@@ -2,7 +2,7 @@ import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 import { requireRole } from "@/lib/auth/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { cancelPriceChangeRequestAction, submitPriceChangeRequestAction } from "@/app/(main)/dashboard/pricing/actions";
+import { cancelPriceChangeRequestAction, submitPriceChangeRequestAction } from "@/app/(store-manage)/dashboard/pricing/actions";
 
 type StoreProductRow = {
   store_id: string;
