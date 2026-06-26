@@ -77,19 +77,19 @@ export const metadata: Metadata = {
     url: "/",
     images: [
       {
-        url: "/images/favicon.png",
-        width: 512,
-        height: 512,
-        alt: "mybottle ロゴ",
+        url: "/images/ogp.png",
+        width: 1536,
+        height: 1024,
+        alt: "mybottle — デジタルボトルキープ",
       },
     ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "mybottle | デジタルボトルキープ",
     description:
       "mybottleは、店舗のボトルキープをスマホで管理・提示できるデジタルボトルキープサービスです。",
-    images: ["/images/favicon.png"],
+    images: ["/images/ogp.png"],
   },
 };
 
