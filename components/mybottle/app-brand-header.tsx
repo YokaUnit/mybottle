@@ -1,14 +1,17 @@
+import { NotificationBell } from "@/components/mybottle/notification-bell";
+import { getNotificationSummary } from "@/lib/notifications";
 import Image from "next/image";
 import Link from "next/link";
 import { Outfit } from "next/font/google";
-import { Bell } from "lucide-react";
 
 const brandFont = Outfit({
   subsets: ["latin"],
   weight: ["600", "700"],
 });
 
-export function AppBrandHeader() {
+export async function AppBrandHeader() {
+  const { unreadCount } = await getNotificationSummary();
+
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-[var(--mb-ring)] bg-white/78 backdrop-blur-xl">
       <div className="mx-auto flex h-14 w-full max-w-md items-center justify-between px-4">
@@ -30,14 +33,7 @@ export function AppBrandHeader() {
             mybottle
           </span>
         </Link>
-        <Link
-          href="/benefits"
-          className="relative grid h-10 w-10 place-items-center rounded-full text-[#334155] transition active:scale-95"
-          aria-label="お知らせ"
-        >
-          <Bell className="h-[1.2rem] w-[1.2rem]" strokeWidth={2} aria-hidden />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#ef4444] ring-2 ring-white" />
-        </Link>
+        <NotificationBell unreadCount={unreadCount} />
       </div>
     </header>
   );

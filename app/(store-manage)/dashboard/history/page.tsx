@@ -1,4 +1,4 @@
-import { StoreManageHeader } from "@/components/mybottle/store-manage-nav";
+import { StoreManageHeader } from "@/components/mybottle/store-manage/store-manage-nav";
 import { getAccessibleStores, requireStoreAccess, resolveStoreId } from "@/lib/store-manage/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 

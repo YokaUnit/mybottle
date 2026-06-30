@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { NavTransitionLink } from "@/components/mybottle/nav-transition-link";
 import { usePathname } from "next/navigation";
-import { Gift, Home, Search, UserRound } from "lucide-react";
+import { Home, Search, SendHorizontal, UserRound } from "lucide-react";
 
 export function AppNav() {
   const pathname = usePathname();
@@ -24,10 +24,10 @@ export function AppNav() {
       filled: false,
     },
     {
-      href: "/benefits",
-      label: "特典",
-      Icon: Gift,
-      active: pathname === "/benefits" || pathname.startsWith("/benefits/"),
+      href: "/send",
+      label: "送る",
+      Icon: SendHorizontal,
+      active: pathname === "/send" || pathname.startsWith("/send/"),
       filled: false,
     },
     {

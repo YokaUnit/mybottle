@@ -1,5 +1,5 @@
-import { StoreManageBenefitsClient } from "@/components/mybottle/store-manage-benefits-client";
-import { StoreManageHeader } from "@/components/mybottle/store-manage-nav";
+import { StoreManageBenefitsClient } from "@/components/mybottle/store-manage/store-manage-benefits-client";
+import { StoreManageHeader } from "@/components/mybottle/store-manage/store-manage-nav";
 import { getAccessibleStores, requireStoreAccess, resolveStoreId } from "@/lib/store-manage/access";
 import { getStoreBenefits } from "@/lib/store-manage/queries";
 

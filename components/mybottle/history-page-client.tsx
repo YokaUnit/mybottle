@@ -138,7 +138,9 @@ export function HistoryPageClient() {
               <ul className="space-y-2">
                 {group.items.map((log) => {
                   const storeName = stores.find((s) => s.id === log.storeId)?.name ?? "加盟店";
-                  const isPlus = log.action === "purchase";
+                  const isPlus =
+                    log.action === "purchase" ||
+                    (log.action === "gift" && log.detail.includes("受取"));
                   return (
                     <li key={log.id}>
                       <Link

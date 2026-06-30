@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { updateStoreSettingsAction } from "@/app/(store-manage)/dashboard/actions";
-import { StoreManagePinClient } from "@/components/mybottle/store-manage-pin-client";
+import { StoreManagePinClient } from "@/components/mybottle/store-manage/store-manage-pin-client";
 import type { StoreManageSettings } from "@/lib/store-manage/types";
 
 type Props = {

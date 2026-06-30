@@ -37,12 +37,7 @@ type StockContextValue = {
     staffPin?: string;
   }) => Promise<void>;
   consume: (params: { storeId: string; productId: string; units?: number }) => Promise<boolean>;
-  giftOne: (params: { storeId: string; productId: string; friendName: string }) => Promise<boolean>;
-  transferOneToAnotherStore: (params: {
-    fromStoreId: string;
-    toStoreId: string;
-    productId: string;
-  }) => Promise<boolean>;
+  refreshState: () => Promise<void>;
   removeBottle: (params: { storeId: string; productId: string }) => Promise<void>;
   setRemainingUnits: (params: {
     storeId: string;
@@ -168,63 +163,6 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
     [refreshState],
   );
 
-  const giftOne = useCallback(
-    async ({
-      storeId,
-      productId,
-      friendName,
-    }: {
-      storeId: string;
-      productId: string;
-      friendName: string;
-    }) => {
-      const ok = await consumeAction({ storeId, productId });
-      if (!ok) return false;
-      const product = products.find((item) => item.id === productId);
-      if (!product) return false;
-      setState((prev) => ({
-        ...prev,
-        logs: [
-          {
-            id: crypto.randomUUID(),
-            action: "gift",
-            storeId,
-            productId,
-            productName: product.name,
-            units: 1,
-            unitLabel: product.unitLabel,
-            detail: `${friendName} さんへLINEギフト`,
-            createdAt: new Date().toISOString(),
-          },
-          ...prev.logs,
-        ],
-      }));
-      await refreshState();
-      return true;
-    },
-    [products, refreshState],
-  );
-
-  const transferOneToAnotherStore = useCallback(
-    async ({
-      fromStoreId,
-      toStoreId,
-      productId,
-    }: {
-      fromStoreId: string;
-      toStoreId: string;
-      productId: string;
-    }) => {
-      if (fromStoreId === toStoreId) return false;
-      const consumed = await consumeAction({ storeId: fromStoreId, productId });
-      if (!consumed) return false;
-      await purchaseAction({ storeId: toStoreId, productId, paymentMethod: "card" });
-      await refreshState();
-      return true;
-    },
-    [refreshState],
-  );
-
   const getItem = useCallback(
     (storeId: string, productId: string) =>
       stock.find((item) => item.productId === productId && item.storeId === storeId),
@@ -276,8 +214,7 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
       logs,
       purchase,
       consume,
-      giftOne,
-      transferOneToAnotherStore,
+      refreshState,
       removeBottle,
       setRemainingUnits,
       getItem,
@@ -289,8 +226,7 @@ export function StockProvider({ children }: { children: React.ReactNode }) {
       logs,
       purchase,
       consume,
-      giftOne,
-      transferOneToAnotherStore,
+      refreshState,
       removeBottle,
       setRemainingUnits,
       getItem,

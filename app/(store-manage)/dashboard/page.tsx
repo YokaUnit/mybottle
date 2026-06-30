@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { StoreManageHeader } from "@/components/mybottle/store-manage-nav";
+import { StoreManageHeader } from "@/components/mybottle/store-manage/store-manage-nav";
 import { getAccessibleStores, requireStoreAccess, resolveStoreId } from "@/lib/store-manage/access";
 import { getStoreDashboardMetrics, getStorePurchasePin } from "@/lib/store-manage/queries";
 

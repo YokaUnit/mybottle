@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { History, Sparkles } from "lucide-react";
+import { History, SendHorizontal, Sparkles } from "lucide-react";
 import { AnimatedCircularGauge } from "@/components/mybottle/animated-circular-gauge";
 import { BottleProductImage } from "@/components/mybottle/bottle-product-image";
 import { useStock } from "@/components/mybottle/stock-provider";
@@ -106,6 +106,13 @@ export function BottleDetailClient({ storeId, productId }: Props) {
           >
             <Sparkles className="h-4 w-4" strokeWidth={2.25} aria-hidden />
             使用する
+          </Link>
+          <Link
+            href={`/send?storeId=${storeId}&productId=${productId}`}
+            className="mb-btn-secondary flex w-full items-center justify-center gap-2 py-3.5 text-sm"
+          >
+            <SendHorizontal className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+            友だちに送る
           </Link>
           <Link
             href={`/products/step-2?storeId=${storeId}`}

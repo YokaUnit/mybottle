@@ -1,5 +1,5 @@
 import { MobileStepHeader } from "@/components/mybottle/mobile-step-header";
-import { PurchaseProductRow } from "@/components/mybottle/purchase-product-row";
+import { PurchaseProductRow } from "@/components/mybottle/products/purchase-product-row";
 import { HorizontalDragScroll } from "@/components/mybottle/horizontal-drag-scroll";
 import { getMasterData, getStoreProductCatalog } from "@/lib/supabase/mybottle";
 import type { StoreProductOffering } from "@/lib/mybottle/types";

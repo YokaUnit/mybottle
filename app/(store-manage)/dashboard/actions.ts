@@ -9,7 +9,7 @@ function revalidateStorePaths(storeId: string) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/bottles");
   revalidatePath("/dashboard/benefits");
-  revalidatePath("/dashboard/staff");
+  revalidatePath("/dashboard/settings");
   revalidatePath("/dashboard/settings");
   revalidatePath("/dashboard/history");
   revalidatePath(`/stores/${storeId}`);

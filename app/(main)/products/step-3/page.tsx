@@ -1,5 +1,5 @@
 import { MobileStepHeader } from "@/components/mybottle/mobile-step-header";
-import { ProductStep3Client } from "@/components/mybottle/product-step3-client";
+import { ProductStep3Client } from "@/components/mybottle/products/product-step3-client";
 import { getStoreProductCatalog } from "@/lib/supabase/mybottle";
 
 type Props = {

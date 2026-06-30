@@ -1533,6 +1533,14 @@ body.mb-post-login-boot-lock::after {
   background: linear-gradient(90deg, transparent, #fde047, transparent);
 }
 
+.mb-tab-loading--admin {
+  top: 3.5rem;
+}
+
+.mb-tab-loading--admin .mb-tab-loading__bar {
+  background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+}
+
 ::view-transition-old(root) {
   animation: mb-vt-fade-out 0.14s ease-out both;
 }

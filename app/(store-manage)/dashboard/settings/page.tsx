@@ -1,5 +1,5 @@
-import { StoreManageSettingsClient } from "@/components/mybottle/store-manage-settings-client";
-import { StoreManageHeader } from "@/components/mybottle/store-manage-nav";
+import { StoreManageSettingsClient } from "@/components/mybottle/store-manage/store-manage-settings-client";
+import { StoreManageHeader } from "@/components/mybottle/store-manage/store-manage-nav";
 import { getAccessibleStores, requireStoreAccess, resolveStoreId } from "@/lib/store-manage/access";
 import { getStoreManageSettings, getStorePurchasePin } from "@/lib/store-manage/queries";
 

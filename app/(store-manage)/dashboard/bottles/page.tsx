@@ -1,5 +1,5 @@
-import { StoreManageBottlesClient } from "@/components/mybottle/store-manage-bottles-client";
-import { StoreManageHeader } from "@/components/mybottle/store-manage-nav";
+import { StoreManageBottlesClient } from "@/components/mybottle/store-manage/store-manage-bottles-client";
+import { StoreManageHeader } from "@/components/mybottle/store-manage/store-manage-nav";
 import { getAccessibleStores, requireStoreAccess, resolveStoreId } from "@/lib/store-manage/access";
 import { getStoreProductsForManage } from "@/lib/store-manage/queries";
 

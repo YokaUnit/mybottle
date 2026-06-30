@@ -1,5 +1,5 @@
-import { ConsumeFlowHeader } from "@/components/mybottle/consume-flow-header";
-import { ConsumeStep1Client } from "@/components/mybottle/consume-step1-client";
+import { ConsumeFlowHeader } from "@/components/mybottle/consume/consume-flow-header";
+import { ConsumeStep1Client } from "@/components/mybottle/consume/consume-step1-client";
 
 type Props = {
   searchParams: Promise<{ storeId?: string; productId?: string }>;

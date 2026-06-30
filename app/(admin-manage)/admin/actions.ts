@@ -112,6 +112,7 @@ export async function createBenefitNewsAction(formData: FormData) {
 
   revalidateAdminTree();
   revalidatePath("/benefits");
+  revalidatePath("/notifications");
 }
 
 export async function updateBenefitNewsAction(formData: FormData) {
@@ -140,6 +141,7 @@ export async function updateBenefitNewsAction(formData: FormData) {
 
   revalidateAdminTree();
   revalidatePath("/benefits");
+  revalidatePath("/notifications");
 }
 
 export async function deleteBenefitNewsAction(formData: FormData) {
@@ -150,6 +152,7 @@ export async function deleteBenefitNewsAction(formData: FormData) {
   await supabaseAdmin.from("benefit_news").delete().eq("id", id);
   revalidateAdminTree();
   revalidatePath("/benefits");
+  revalidatePath("/notifications");
 }
 
 export async function addStaffStoreMembershipAction(formData: FormData) {
@@ -167,7 +170,6 @@ export async function addStaffStoreMembershipAction(formData: FormData) {
     { onConflict: "user_id,store_id" },
   );
   revalidateAdminTree();
-  revalidatePath("/dashboard/pricing");
 }
 
 export async function toggleStaffStoreMembershipAction(formData: FormData) {
@@ -178,35 +180,4 @@ export async function toggleStaffStoreMembershipAction(formData: FormData) {
 
   await supabaseAdmin.from("staff_store_memberships").update({ is_active: nextActive }).eq("id", membershipId);
   revalidateAdminTree();
-  revalidatePath("/dashboard/pricing");
-}
-
-export async function approvePriceChangeRequestAction(formData: FormData) {
-  const { user } = await requireRole(["admin"]);
-  const requestId = formData.get("request_id")?.toString();
-  const reviewNote = (formData.get("review_note")?.toString() ?? "").trim();
-  if (!requestId) return;
-
-  await supabaseAdmin.rpc("approve_store_product_price_request", {
-    request_id: requestId,
-    reviewer_id: user.id,
-    note: reviewNote || null,
-  });
-  revalidateAdminTree();
-  revalidatePath("/dashboard/pricing");
-}
-
-export async function rejectPriceChangeRequestAction(formData: FormData) {
-  const { user } = await requireRole(["admin"]);
-  const requestId = formData.get("request_id")?.toString();
-  const reviewNote = (formData.get("review_note")?.toString() ?? "").trim();
-  if (!requestId) return;
-
-  await supabaseAdmin.rpc("reject_store_product_price_request", {
-    request_id: requestId,
-    reviewer_id: user.id,
-    note: reviewNote || null,
-  });
-  revalidateAdminTree();
-  revalidatePath("/dashboard/pricing");
 }
