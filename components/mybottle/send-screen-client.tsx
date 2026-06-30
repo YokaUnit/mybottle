@@ -74,6 +74,7 @@ export function SendScreenClient({
   const [addSearchQuery, setAddSearchQuery] = useState("");
   const [addSearchResults, setAddSearchResults] = useState<FriendUser[]>([]);
   const [addSearching, setAddSearching] = useState(false);
+  const [addSearchError, setAddSearchError] = useState<string | null>(null);
   const [tab, setTab] = useState<"friends" | "add">("friends");
 
   const [pendingFriend, setPendingFriend] = useState<FriendUser | null>(null);
@@ -111,16 +112,19 @@ export function SendScreenClient({
     const q = addSearchQuery.trim();
     if (q.length < 2) {
       setAddSearchResults([]);
+      setAddSearchError(null);
       return;
     }
 
     const timer = window.setTimeout(async () => {
       setAddSearching(true);
+      setAddSearchError(null);
       try {
-        const results = await searchUsersAction(q);
+        const results = await searchUsersAction(q, { excludeFriends: true });
         setAddSearchResults(results);
-      } catch {
+      } catch (e) {
         setAddSearchResults([]);
+        setAddSearchError(e instanceof Error ? e.message : "検索に失敗しました");
       } finally {
         setAddSearching(false);
       }
@@ -379,9 +383,9 @@ export function SendScreenClient({
           ) : (
             <div className="space-y-3">
               <div className="mb-surface px-4 py-3">
-                <p className="text-xs font-extrabold text-[var(--mb-ink)]">新しい友だちを探す</p>
+                <p className="text-xs font-extrabold text-[var(--mb-ink)]">友だちを探して追加</p>
                 <p className="mt-1 text-[11px] font-medium leading-relaxed text-[var(--mb-forest-light)]">
-                  表示名・メール・電話番号でユーザーを検索し、友だちに追加できます。追加後すぐ杯数を送れます。
+                  表示名・メール・電話番号で検索し、見つかった人を友だちに追加できます。追加後すぐ杯数を送れます。
                 </p>
               </div>
 
@@ -402,17 +406,21 @@ export function SendScreenClient({
                 />
               </div>
               <p className="px-1 text-[11px] font-medium text-[#94a3b8]">
-                2文字以上入力。表示名は前方一致、メール・電話は完全一致です。
+                2文字以上。表示名は部分一致、メール・電話は登録情報と一致する必要があります。
               </p>
 
+              {addSearchError ? (
+                <p className="text-center text-sm font-bold text-red-500">{addSearchError}</p>
+              ) : null}
+
               {addSearchQuery.trim().length < 2 ? (
-                <div className="mb-surface px-5 py-10 text-center">
+                <div className="mb-surface px-5 py-8 text-center">
                   <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#ecfdf5] text-[#14b8a6]">
-                    <UserPlus className="h-5 w-5" strokeWidth={2.25} aria-hidden />
+                    <Search className="h-5 w-5" strokeWidth={2.25} aria-hidden />
                   </span>
                   <p className="mt-4 text-sm font-extrabold text-[var(--mb-ink)]">ユーザーを検索</p>
-                  <p className="mt-2 text-xs font-medium text-[var(--mb-forest-light)]">
-                    見つかったユーザーを友だちに追加できます
+                  <p className="mt-2 text-xs font-medium leading-relaxed text-[var(--mb-forest-light)]">
+                    相手の表示名・メール・電話番号を入力してください
                   </p>
                 </div>
               ) : addSearching ? (
@@ -425,38 +433,36 @@ export function SendScreenClient({
                   ))}
                 </ul>
               ) : addSearchResults.length === 0 ? (
-                <p className="py-6 text-center text-sm font-bold text-[#94a3b8]">見つかりませんでした</p>
+                <div className="space-y-3">
+                  <div className="mb-surface px-5 py-8 text-center">
+                    <p className="text-sm font-extrabold text-[var(--mb-ink)]">該当するユーザーがいません</p>
+                    <p className="mt-2 text-xs font-medium leading-relaxed text-[var(--mb-forest-light)]">
+                      キーワードを変えるか、すでに友だちの場合は友だちタブを確認してください
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <ul className="space-y-2">
-                  {addSearchResults.map((user) => {
-                    const isFriend = friendList.some((f) => f.id === user.id);
-                    return (
-                      <li key={user.id}>
-                        <button
-                          type="button"
-                          onClick={() => (isFriend ? pickFriend(user) : requestAddFriend(user))}
-                          className="mb-surface flex w-full items-center gap-3 p-4 text-left transition active:scale-[0.99]"
-                        >
-                          <FriendAvatar friend={user} />
-                          <span className="min-w-0 flex-1">
-                            <span className="block font-extrabold text-[var(--mb-ink)]">{user.displayName}</span>
-                            <span className="mt-0.5 block text-[11px] font-medium text-[var(--mb-forest-light)]">
-                              {isFriend ? "追加済み · タップして送る" : "タップして友だちに追加"}
-                            </span>
+                  {addSearchResults.map((user) => (
+                    <li key={user.id}>
+                      <button
+                        type="button"
+                        onClick={() => requestAddFriend(user)}
+                        className="mb-surface flex w-full items-center gap-3 p-4 text-left transition active:scale-[0.99]"
+                      >
+                        <FriendAvatar friend={user} />
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-extrabold text-[var(--mb-ink)]">{user.displayName}</span>
+                          <span className="mt-0.5 block text-[11px] font-medium text-[#0d9488]">
+                            タップして友だちに追加
                           </span>
-                          {isFriend ? (
-                            <span className="rounded-full bg-[#ecfdf5] px-2 py-0.5 text-[10px] font-extrabold text-[#0d9488]">
-                              友だち
-                            </span>
-                          ) : (
-                            <span className="grid h-8 w-8 place-items-center rounded-full bg-[#ecfdf5] text-[#14b8a6]">
-                              <UserPlus className="h-4 w-4" strokeWidth={2.25} aria-hidden />
-                            </span>
-                          )}
-                        </button>
-                      </li>
-                    );
-                  })}
+                        </span>
+                        <span className="grid h-8 w-8 place-items-center rounded-full bg-[#ecfdf5] text-[#14b8a6]">
+                          <UserPlus className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+                        </span>
+                      </button>
+                    </li>
+                  ))}
                 </ul>
               )}
             </div>

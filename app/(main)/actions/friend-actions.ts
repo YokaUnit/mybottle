@@ -20,12 +20,18 @@ function mapFriend(row: RpcFriendRow): FriendUser {
   };
 }
 
-export async function searchUsersAction(query: string): Promise<FriendUser[]> {
+export async function searchUsersAction(
+  query: string,
+  options?: { excludeFriends?: boolean },
+): Promise<FriendUser[]> {
   const q = query.trim();
   if (q.length < 2) return [];
 
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("search_my_bottle_users", { p_query: q });
+  const { data, error } = await supabase.rpc("search_my_bottle_users", {
+    p_query: q,
+    p_exclude_friends: options?.excludeFriends ?? false,
+  });
   if (error) throw new Error(error.message);
 
   return ((data as RpcFriendRow[] | null) ?? []).map(mapFriend);
