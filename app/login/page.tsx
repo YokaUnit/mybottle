@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ChevronRight, Heart, ShieldCheck, Smartphone, Timer } from "lucide-react";
 import { GoogleMark } from "@/components/mybottle/login-mark";
+import { LegalLinksSection } from "@/components/mybottle/legal/legal-links-section";
 import { LoginShopArt } from "@/components/mybottle/login-shop-art";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import "./login.css";
@@ -95,6 +97,8 @@ function HeadlineSparkles() {
 }
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const deleted = searchParams.get("deleted") === "1";
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -203,6 +207,24 @@ export default function LoginPage() {
             安全にログインできます
           </p>
 
+          <p className="text-center text-[0.625rem] font-medium leading-relaxed text-[#94a3b8]">
+            ログインすると
+            <Link href="/legal/terms" className="font-extrabold text-[#0d9488] underline-offset-2 hover:underline">
+              利用規約
+            </Link>
+            と
+            <Link href="/legal/privacy" className="font-extrabold text-[#0d9488] underline-offset-2 hover:underline">
+              プライバシーポリシー
+            </Link>
+            に同意したものとみなします
+          </p>
+
+          {deleted ? (
+            <p className="text-center text-sm font-bold text-[#0d9488]">
+              アカウントを退会しました。ご利用ありがとうございました。
+            </p>
+          ) : null}
+
           {errorMessage ? (
             <p className="text-center text-sm font-bold text-red-500">{errorMessage}</p>
           ) : null}
@@ -242,6 +264,10 @@ export default function LoginPage() {
               </Link>
             </div>
           </div>
+        </section>
+
+        <section className="mb-login-enter mb-login-enter--5 px-2 pb-6 pt-2">
+          <LegalLinksSection variant="compact" />
         </section>
 
         <div className="mb-login-wave-guard" aria-hidden />

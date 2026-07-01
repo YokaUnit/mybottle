@@ -2,7 +2,7 @@ import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 import { AdminManageHeader } from "@/components/mybottle/admin/admin-manage-nav";
 import { getAdminDashboardMetrics } from "@/lib/admin-manage/queries";
-import { ChevronRight, Package, Store, Users } from "lucide-react";
+import { ChevronRight, Package, ScrollText, Store, Users } from "lucide-react";
 
 export default async function AdminDashboardPage() {
   noStore();
@@ -16,6 +16,12 @@ export default async function AdminDashboardPage() {
   ];
 
   const links = [
+    {
+      href: "/admin/logs",
+      title: "利用ログ",
+      desc: "購入・利用・送信の横断監査",
+      Icon: ScrollText,
+    },
     {
       href: "/admin/stores",
       title: "店舗管理",

@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock3, Heart, MapPin, Navigation, Phone, Wine } from "lucide-react";
-import { getStoreDetailById } from "@/lib/supabase/mybottle";
+import { AppErrorScreen } from "@/components/mybottle/app-error-screen";
+import { getStorePageState } from "@/lib/supabase/mybottle";
 
 type Props = {
   params: Promise<{ storeId: string }>;
@@ -10,8 +11,18 @@ type Props = {
 
 export default async function StoreDetailPage({ params }: Props) {
   const { storeId } = await params;
-  const { store, meta } = await getStoreDetailById(storeId);
-  if (!store) notFound();
+  const state = await getStorePageState(storeId);
+
+  if (state.kind === "not_found") notFound();
+  if (state.kind === "inactive") {
+    return (
+      <main className="space-y-4 pb-6 pt-2">
+        <AppErrorScreen variant="store-unavailable" storeName={state.storeName} />
+      </main>
+    );
+  }
+
+  const { store, meta } = state;
 
   const safeMeta = meta ?? {
     imageSrc: "/store/test1.png",

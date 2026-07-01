@@ -5,6 +5,8 @@ import { createServerClient } from "@supabase/ssr";
 function isPublicPath(pathname: string) {
   if (pathname === "/login") return true;
   if (pathname === "/staff") return true;
+  if (pathname === "/maintenance") return true;
+  if (pathname.startsWith("/legal")) return true;
   if (pathname.startsWith("/auth/callback")) return true;
   if (pathname.startsWith("/_next")) return true;
   if (pathname.startsWith("/images/")) return true;
@@ -16,6 +18,20 @@ function isPublicPath(pathname: string) {
 export async function proxy(request: NextRequest) {
   try {
     const { pathname } = request.nextUrl;
+
+    if (process.env.MAINTENANCE_MODE === "1" && pathname !== "/maintenance") {
+      const isAsset =
+        pathname.startsWith("/_next") ||
+        pathname.startsWith("/images/") ||
+        pathname === "/favicon.ico" ||
+        /\.(ico|png|jpg|jpeg|gif|webp|svg|txt|webmanifest)$/i.test(pathname);
+      if (!isAsset) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/maintenance";
+        return NextResponse.redirect(url);
+      }
+    }
+
     const hasOAuthCode = request.nextUrl.searchParams.has("code");
     if (hasOAuthCode && pathname !== "/auth/callback") {
       const url = request.nextUrl.clone();

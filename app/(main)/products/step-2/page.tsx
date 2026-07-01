@@ -1,7 +1,9 @@
+import { notFound } from "next/navigation";
 import { MobileStepHeader } from "@/components/mybottle/mobile-step-header";
+import { AppErrorScreen } from "@/components/mybottle/app-error-screen";
 import { PurchaseProductRow } from "@/components/mybottle/products/purchase-product-row";
 import { HorizontalDragScroll } from "@/components/mybottle/horizontal-drag-scroll";
-import { getMasterData, getStoreProductCatalog } from "@/lib/supabase/mybottle";
+import { getMasterData, getStorePageState, getStoreProductCatalog } from "@/lib/supabase/mybottle";
 import type { StoreProductOffering } from "@/lib/mybottle/types";
 
 type Props = {
@@ -11,6 +13,18 @@ type Props = {
 export default async function ProductStep2Page({ searchParams }: Props) {
   const params = await searchParams;
   const storeId = params.storeId ?? "chigasaki-a";
+
+  const storeState = await getStorePageState(storeId);
+  if (storeState.kind === "not_found") notFound();
+  if (storeState.kind === "inactive") {
+    return (
+      <main className="space-y-4">
+        <MobileStepHeader title="ボトルを選択" step={2} />
+        <AppErrorScreen variant="store-unavailable" storeName={storeState.storeName} />
+      </main>
+    );
+  }
+
   const [{ stores }, catalog] = await Promise.all([getMasterData(), getStoreProductCatalog(storeId)]);
   const storeName = stores.find((store) => store.id === storeId)?.name ?? "加盟店";
   const categoryOrder = ["ビール", "焼酎", "ハイボール", "サワー", "ジン", "カクテル", "ワイン"] as const;

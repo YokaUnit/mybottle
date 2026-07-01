@@ -2,10 +2,11 @@
 
 import { NavTransitionLink } from "@/components/mybottle/nav-transition-link";
 import { usePathname } from "next/navigation";
-import { Bell, LayoutDashboard, Store, Users } from "lucide-react";
+import { Bell, LayoutDashboard, ScrollText, Store, Users } from "lucide-react";
 
 const LINKS = [
   { href: "/admin", label: "ホーム", Icon: LayoutDashboard, match: (p: string) => p === "/admin" },
+  { href: "/admin/logs", label: "ログ", Icon: ScrollText, match: (p: string) => p.startsWith("/admin/logs") },
   { href: "/admin/stores", label: "店舗", Icon: Store, match: (p: string) => p.startsWith("/admin/stores") },
   { href: "/admin/users", label: "ユーザー", Icon: Users, match: (p: string) => p.startsWith("/admin/users") },
   { href: "/admin/news", label: "お知らせ", Icon: Bell, match: (p: string) => p.startsWith("/admin/news") },
@@ -16,7 +17,7 @@ export function AdminManageNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[#78350f] bg-[#92400e] pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-6px_24px_rgba(120,53,15,0.35)]">
-      <div className="mx-auto grid w-full max-w-md grid-cols-4 px-1">
+      <div className="mx-auto grid w-full max-w-md grid-cols-5 px-0.5">
         {LINKS.map(({ href, label, Icon, match }) => {
           const active = match(pathname);
           return (

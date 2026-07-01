@@ -1,8 +1,8 @@
 import { MobileStepHeader } from "@/components/mybottle/mobile-step-header";
+import { AppErrorScreen } from "@/components/mybottle/app-error-screen";
 import { ProductStep4Client } from "@/components/mybottle/products/product-step4-client";
 import { getStoreName } from "@/lib/store-manage/purchase-pin";
-import { getStoreProductCatalog } from "@/lib/supabase/mybottle";
-import { notFound } from "next/navigation";
+import { getProductPurchaseState } from "@/lib/supabase/mybottle";
 
 type Props = {
   searchParams: Promise<{ storeId?: string; productId?: string; quantity?: string }>;
@@ -11,14 +11,45 @@ type Props = {
 export default async function ProductStep4Page({ searchParams }: Props) {
   const params = await searchParams;
   const storeId = params.storeId ?? "chigasaki-a";
-  const [catalog, storeName] = await Promise.all([
-    getStoreProductCatalog(storeId),
+  const productId = params.productId ?? "";
+
+  if (!productId) {
+    return (
+      <main className="space-y-4">
+        <MobileStepHeader title="店員に PIN を入力してもらう" step={4} />
+        <AppErrorScreen variant="product-unavailable" storeId={storeId} />
+      </main>
+    );
+  }
+
+  const [purchaseState, storeName] = await Promise.all([
+    getProductPurchaseState(storeId, productId),
     getStoreName(storeId),
   ]);
-  const productId = params.productId ?? catalog[0]?.id ?? "";
-  const product = catalog.find((p) => p.id === productId);
-  if (!product) notFound();
 
+  if (purchaseState.kind === "unavailable") {
+    return (
+      <main className="space-y-4">
+        <MobileStepHeader title="店員に PIN を入力してもらう" step={4} />
+        <AppErrorScreen
+          variant="product-unavailable"
+          productName={purchaseState.productName}
+          storeId={storeId}
+        />
+      </main>
+    );
+  }
+
+  if (purchaseState.kind === "not_found") {
+    return (
+      <main className="space-y-4">
+        <MobileStepHeader title="店員に PIN を入力してもらう" step={4} />
+        <AppErrorScreen variant="product-unavailable" storeId={storeId} />
+      </main>
+    );
+  }
+
+  const product = purchaseState.offering;
   const parsedQuantity = Number(params.quantity ?? String(product.minPurchaseSets ?? 1));
   const minQ = product.minPurchaseSets ?? 1;
   const maxQ = product.maxPurchaseSets ?? 10;

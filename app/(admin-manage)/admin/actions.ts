@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth/roles";
+import type { UsageLogActionFilter } from "@/lib/admin-manage/usage-logs";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 function revalidateAdminTree() {
@@ -180,4 +181,20 @@ export async function toggleStaffStoreMembershipAction(formData: FormData) {
 
   await supabaseAdmin.from("staff_store_memberships").update({ is_active: nextActive }).eq("id", membershipId);
   revalidateAdminTree();
+}
+
+export async function loadMoreAdminUsageLogsAction(input: {
+  storeId?: string;
+  action?: UsageLogActionFilter;
+  userQuery?: string;
+  cursor: string;
+}) {
+  await requireRole(["admin"]);
+  const { getAdminUsageLogs } = await import("@/lib/admin-manage/usage-logs");
+  return getAdminUsageLogs({
+    storeId: input.storeId,
+    action: input.action ?? "all",
+    userQuery: input.userQuery,
+    cursor: input.cursor,
+  });
 }

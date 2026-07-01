@@ -248,3 +248,73 @@ export async function getProductType(productId: string): Promise<ProductType> {
   const data = await getMasterData();
   return data.products.find((item) => item.id === productId)?.type ?? "physical";
 }
+
+export type StorePageState =
+  | { kind: "ok"; store: Store; meta: StoreUiMeta | null; heroProducts: Product[] }
+  | { kind: "not_found" }
+  | { kind: "inactive"; storeName: string };
+
+export const getStorePageState = cache(async (storeId: string): Promise<StorePageState> => {
+  const supabase = await createSupabaseServerClient();
+  const storeRes = await supabase.from("stores").select("*").eq("id", storeId).maybeSingle();
+
+  if (storeRes.error || !storeRes.data) {
+    return { kind: "not_found" };
+  }
+
+  const row = storeRes.data as StoreRow;
+  if (!row.is_active) {
+    return { kind: "inactive", storeName: row.name };
+  }
+
+  const detail = await getStoreDetailById(storeId);
+  if (!detail.store) {
+    return { kind: "not_found" };
+  }
+
+  return {
+    kind: "ok",
+    store: detail.store,
+    meta: detail.meta,
+    heroProducts: detail.heroProducts,
+  };
+});
+
+export type ProductPurchaseState =
+  | { kind: "ok"; offering: StoreProductOffering }
+  | { kind: "not_found" }
+  | { kind: "unavailable"; productName: string };
+
+export async function getProductPurchaseState(
+  storeId: string,
+  productId: string,
+): Promise<ProductPurchaseState> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("store_products")
+    .select(
+      "id,store_id,regular_price_jpy,current_price_jpy,min_purchase_sets,max_purchase_sets,validity_days,is_selling,is_sold_out,is_active,products!inner(id,name,type,category,unit_label,bundle_size,price_jpy,description,image_path,is_active)",
+    )
+    .eq("store_id", storeId)
+    .eq("product_id", productId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return { kind: "not_found" };
+  }
+
+  const row = data as StoreProductJoinedRow;
+  const productRaw = Array.isArray(row.products) ? row.products[0] : row.products;
+  const productName = productRaw?.name ?? "ボトル";
+
+  if (!row.is_active || !productRaw?.is_active || !row.is_selling || row.is_sold_out) {
+    return { kind: "unavailable", productName };
+  }
+
+  const offering = mapStoreProductOffering(row);
+  if (!offering) {
+    return { kind: "unavailable", productName };
+  }
+
+  return { kind: "ok", offering };
+}

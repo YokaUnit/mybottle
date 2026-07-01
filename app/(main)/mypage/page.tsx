@@ -8,6 +8,7 @@ import {
   Settings,
   UserRound,
 } from "lucide-react";
+import { LegalLinksSection } from "@/components/mybottle/legal/legal-links-section";
 import { LogoutButton } from "@/components/mybottle/logout-button";
 import { MyPageOperationsSection } from "@/components/mybottle/mypage-operations-section";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -87,6 +88,8 @@ export default async function MyPage() {
       </nav>
 
       <MyPageOperationsSection role={role} />
+
+      <LegalLinksSection backQuery="back=mypage" />
     </main>
   );
 }
